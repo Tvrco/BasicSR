@@ -9,9 +9,9 @@ def test_pairedimagedataset():
     opt_str = r"""
 name: Test
 type: PairedImageDataset
-dataroot_gt: tests/data/gt
-dataroot_lq: tests/data/lq
-meta_info_file: tests/data/meta_info_gt.txt
+dataroot_gt: /root/share/DF2K/DF2K_HR
+dataroot_lq: /root/share/DF2K/DF2K_LRX4
+# meta_info_file: tests/data/meta_info_gt.txt
 filename_tmpl: '{}'
 io_backend:
     type: disk

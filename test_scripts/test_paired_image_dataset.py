@@ -18,8 +18,8 @@ def main(mode='folder'):
     opt['name'] = 'DIV2K'
     opt['type'] = 'PairedImageDataset'
     if mode == 'folder':
-        opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub'
-        opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub'
+        opt['dataroot_gt'] = '/root/share/DF2K/DF2K_HR'
+        opt['dataroot_lq'] = '/root/share/DF2K/DF2K_LRX4'
         opt['filename_tmpl'] = '{}'
         opt['io_backend'] = dict(type='disk')
     elif mode == 'meta_info_file':
@@ -67,4 +67,4 @@ def main(mode='folder'):
 
 
 if __name__ == '__main__':
-    main()
+    main('folder')
