@@ -50,7 +50,6 @@ class RLFN(nn.Module):
         output = self.upsampler(out_low_resolution)
 
         return output
-    
 def _make_pair(value):
     if isinstance(value, int):
         value = (value,) * 2
