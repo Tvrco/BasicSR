@@ -1,5 +1,5 @@
 # general settings
-name: RLFN_DF2Kx4_F48M48_G192BS16_L1_600k
+name: RLFN_DF2Kx4_F48M48_G128BS16_L1_600k
 model_type: SRModel
 scale: 4
 num_gpu: 1  # set num_gpu: 0 for cpu mode
