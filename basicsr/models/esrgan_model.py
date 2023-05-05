@@ -35,8 +35,11 @@ class ESRGANModel(SRGANModel):
                     l_g_total += l_g_style
                     loss_dict['l_g_style'] = l_g_style
             # gan loss (relativistic gan)
-            real_d_pred = self.net_d(self.gt).detach()
-            fake_g_pred = self.net_d(self.output)
+            real_d_pred = self.net_d(self.gt).detach() #====>1
+            fake_g_pred = self.net_d(self.output) #======>0
+            '''
+                有C(REAL)-E[C(FAKE)]>0，且差值越大，表明二者距离越远，也就是该差值经过sigmoid后的值越接近于1,判别器对真实数据判决的原始值大于对生成数据判决的原始值。因此D的目的是使得该sigmoid值尽可能接近于1，这就将真实图片和生成图片很好的区分开来；
+            '''
             l_g_real = self.cri_gan(real_d_pred - torch.mean(fake_g_pred), False, is_disc=False)
             l_g_fake = self.cri_gan(fake_g_pred - torch.mean(real_d_pred), True, is_disc=False)
             l_g_gan = (l_g_real + l_g_fake) / 2
