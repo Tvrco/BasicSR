@@ -4,7 +4,6 @@ import torchvision.utils
 
 from basicsr.data import build_dataloader, build_dataset
 
-
 def main(mode='folder'):
     """Test paired image dataset.
 
@@ -16,12 +15,18 @@ def main(mode='folder'):
     opt['phase'] = 'train'
 
     opt['name'] = 'DIV2K'
-    opt['type'] = 'PairedImageDataset'
+    opt['type'] = 'DatasetBlindSR'
     if mode == 'folder':
-        opt['dataroot_gt'] = '/root/share/DF2K/DF2K_HR'
-        opt['dataroot_lq'] = '/root/share/DF2K/DF2K_LRX4'
+        opt['dataroot_gt'] = 'E:\\PyProject\\data\\2K_Resolution\\DIV2K\\GTmod4'
+        opt['dataroot_lq'] = ''
         opt['filename_tmpl'] = '{}'
         opt['io_backend'] = dict(type='disk')
+
+        opt['shuffle_prob'] = 0.1
+        opt['use_sharp'] = False
+        opt['degradation_type'] = 'bsrgan'
+        opt['lq_patchsize'] = 64
+
     elif mode == 'meta_info_file':
         opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub'
         opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub'
