@@ -78,7 +78,8 @@ class DatasetBlindSR(data.Dataset):
                 self.paths.append(dict([('gt_path', gt_path), ('lq_path', lq_path)]))
         else:
             self.paths = paths_from_folder(self.gt_folder)
-        # print(self.paths)
+        print(self.paths)
+
     def __getitem__(self, index):
         print(1123222222222222222222222222222222222222222)
         if self.file_client is None:
@@ -88,7 +89,7 @@ class DatasetBlindSR(data.Dataset):
 
         # Load gt and lq images. Dimension order: HWC; channel order: BGR;
         # image range: [0, 1], float32.
-        gt_path = self.paths[index]['gt_path']
+        gt_path = self.paths[index]
         img_bytes = self.file_client.get(gt_path, 'gt')
         img_gt = imfrombytes(img_bytes, float32=True)
         # lq_path = self.paths[index]['lq_path']
@@ -110,7 +111,7 @@ class DatasetBlindSR(data.Dataset):
             rnd_h_H = random.randint(0, max(0, H - gt_size))
             rnd_w_H = random.randint(0, max(0, W - gt_size))
             img_gt = img_gt[rnd_h_H:rnd_h_H + gt_size, rnd_w_H:rnd_w_H + gt_size, :]
-            print(img_gt.shape)
+            print(img_gt.shape) # (128, 128, 3)
             # img_gt, img_lq = paired_random_crop(img_gt, img_lq, gt_size, scale, gt_path)
             # flip, rotation
             # img_gt, img_lq = augment([img_gt, img_lq], self.opt['use_hflip'], self.opt['use_rot'])
