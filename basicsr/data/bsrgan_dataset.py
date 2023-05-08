@@ -81,7 +81,6 @@ class DatasetBlindSR(data.Dataset):
         print(self.paths)
 
     def __getitem__(self, index):
-        print(1123222222222222222222222222222222222222222)
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend_opt.pop('type'), **self.io_backend_opt)
 
@@ -111,7 +110,7 @@ class DatasetBlindSR(data.Dataset):
             rnd_h_H = random.randint(0, max(0, H - gt_size))
             rnd_w_H = random.randint(0, max(0, W - gt_size))
             img_gt = img_gt[rnd_h_H:rnd_h_H + gt_size, rnd_w_H:rnd_w_H + gt_size, :]
-            print(img_gt.shape) # (128, 128, 3)
+            # print(img_gt.shape) # (128, 128, 3)
             # img_gt, img_lq = paired_random_crop(img_gt, img_lq, gt_size, scale, gt_path)
             # flip, rotation
             # img_gt, img_lq = augment([img_gt, img_lq], self.opt['use_hflip'], self.opt['use_rot'])

@@ -2,7 +2,10 @@
 import numpy as np
 import cv2
 import torch
-from . import utils_image as util
+try:
+    from . import utils_image as util
+except:
+    import utils_image as util
 import random
 from scipy import ndimage
 import scipy
@@ -427,7 +430,7 @@ def random_crop(lq, hq, sf=4, lq_patchsize=64):
     return lq, hq
 
 
-def degradation_bsrgan(img, sf=4, lq_patchsize=72, isp_model=None):
+def degradation_bsrgan(img, sf=4, lq_patchsize=None, isp_model=None):
     """
     This is the degradation model of BSRGAN from the paper
     "Designing a Practical Degradation Model for Deep Blind Image Super-Resolution"
@@ -610,20 +613,57 @@ def degradation_bsrgan_plus(img, sf=4, shuffle_prob=0.5, use_sharp=False, lq_pat
 
 
 if __name__ == '__main__':
-    img = util.imread_uint('0801.png', 3)
-    # print(img.shape)
-    img = util.uint2single(img)
-    print(img.shape)
+    '''
+    creat valdata
+    '''
+    from basicsr.data.data_util import paths_from_folder
+    from basicsr.utils import FileClient, imfrombytes
+    import os
+    from tqdm import tqdm
+    import torchvision
+    try:
+        path = paths_from_folder('E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_HR')
+        save_path = 'E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_BSRGAN_LR'
+    except:
+        # google path
+        path = paths_from_folder('/content/BasicSR/datasets/DF2K_val/GTmod4')
+        save_path = '/content/BasicSR/datasets/DF2K_val/LRblindsrx4'
+    os.makedirs(save_path,exist_ok=True)
     sf = 4
+    for p in tqdm(path):
+        img_bytes = FileClient().get(p,'gt')
+        img_gt = imfrombytes(img_bytes, float32=True)
+        img_gt = cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB)
+        # img = util.imread_uint(p, 3)
+        # img_gt = util.uint2single(img)
+        img_lq, img_hq = degradation_bsrgan(img_gt, sf=4)
+        # print(img_lq.dtype)
+        name = p.split('\\')[-1]
+        util.imsave(util.single2uint(img_lq), save_path+f'\\{name}')
+        # test_single
+        # lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
+        # img_concat = np.concatenate([lq_nearest, util.single2uint(img_hq)], axis=1)
+        # util.imsave(img_concat, save_path+f'\\sing_concat_test{name}')
+        # break
+
+
+    '''
+    origin test
+    '''
+    # img = util.imread_uint('0801.png', 3)
+    # # print(img.shape)
+    # img = util.uint2single(img)
+    # print(img.shape)
+    # sf = 4
     
-    for i in range(20):
-        # img_lq, img_hq, img2 = degradation_bsrgan(img, sf=sf, lq_patchsize=1024)
-        img_lq, img_hq = degradation_bsrgan(img, sf=sf, lq_patchsize=76)
-        print(i)
-        print(img_lq.shape,img_hq.shape)
-        lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
-        img_concat = np.concatenate([lq_nearest, util.single2uint(img_hq)], axis=1)
-        util.imsave(img_concat, str(i)+'.png')
+    # for i in range(20):
+    #     # img_lq, img_hq, img2 = degradation_bsrgan(img, sf=sf, lq_patchsize=1024)
+    #     img_lq, img_hq = degradation_bsrgan(img, sf=sf, lq_patchsize=76)
+    #     print(i)
+    #     print(img_lq.shape,img_hq.shape)
+        # lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
+    #     img_concat = np.concatenate([lq_nearest, util.single2uint(img_hq)], axis=1)
+        # util.imsave(img_concat, str(i)+'.png')
         # util.imsave(util.single2uint(img2), str(i)+'img2.png')
 
 #    for i in range(10):
