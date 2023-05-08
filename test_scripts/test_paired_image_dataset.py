@@ -27,22 +27,22 @@ def main(mode='folder'):
         opt['degradation_type'] = 'bsrgan'
         opt['lq_patchsize'] = 64
 
-    elif mode == 'meta_info_file':
-        opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub'
-        opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub'
-        opt['meta_info_file'] = 'basicsr/data/meta_info/meta_info_DIV2K800sub_GT.txt'  # noqa:E501
-        opt['filename_tmpl'] = '{}'
-        opt['io_backend'] = dict(type='disk')
-    elif mode == 'lmdb':
-        opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub.lmdb'
-        opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb'  # noqa:E501
-        opt['io_backend'] = dict(type='lmdb')
+    # elif mode == 'meta_info_file':
+    #     opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub'
+    #     opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic/X4_sub'
+    #     opt['meta_info_file'] = 'basicsr/data/meta_info/meta_info_DIV2K800sub_GT.txt'  # noqa:E501
+    #     opt['filename_tmpl'] = '{}'
+    #     opt['io_backend'] = dict(type='disk')
+    # elif mode == 'lmdb':
+    #     opt['dataroot_gt'] = 'datasets/DIV2K/DIV2K_train_HR_sub.lmdb'
+    #     opt['dataroot_lq'] = 'datasets/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb'  # noqa:E501
+    #     opt['io_backend'] = dict(type='lmdb')
 
     opt['gt_size'] = 128
     opt['use_hflip'] = True
     opt['use_rot'] = True
 
-    opt['num_worker_per_gpu'] = 2
+    opt['num_worker_per_gpu'] = 1
     opt['batch_size_per_gpu'] = 16
     opt['scale'] = 4
 
@@ -51,6 +51,7 @@ def main(mode='folder'):
     os.makedirs('tmp', exist_ok=True)
 
     dataset = build_dataset(opt)
+    dataset.__getitem__(0)
     data_loader = build_dataloader(dataset, opt, num_gpu=0, dist=opt['dist'], sampler=None)
 
     nrow = int(math.sqrt(opt['batch_size_per_gpu']))

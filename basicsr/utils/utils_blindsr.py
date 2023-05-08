@@ -451,8 +451,8 @@ def degradation_bsrgan(img, sf=4, lq_patchsize=72, isp_model=None):
     # print(img.shape)
     h, w = img.shape[:2]
 
-    if h < lq_patchsize*sf or w < lq_patchsize*sf:
-        raise ValueError(f'img size ({h1}X{w1}) is too small!')
+    # if h < lq_patchsize*sf or w < lq_patchsize*sf:
+    #     raise ValueError(f'img size ({h1}X{w1}) is too small!')
 
     hq = img.copy()
 
