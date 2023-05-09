@@ -640,9 +640,11 @@ if __name__ == '__main__':
         # print(img_lq.dtype)
         try:
             name = p.split('/')[-1]
+            util.imsave(util.single2uint(img_lq), os.path.join(save_path,name))
+
         except:
             name = p.split('\\')[-1]
-        util.imsave(util.single2uint(img_lq), save_path+f'\\{name}')
+            util.imsave(util.single2uint(img_lq), save_path+f'\\{name}')
         # test_single
         # lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
         # img_concat = np.concatenate([lq_nearest, util.single2uint(img_hq)], axis=1)
