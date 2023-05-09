@@ -129,3 +129,4 @@ dist_params:
 # CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/train_RLFN_x4.yml > norunlog.log 2>&1 &
 # ps -ef | grep RLFN | grep -v grep | awk '{print $2}' | xargs kill -9
 # bs64 :2023-04-24 18:28:24,101 INFO: [RFLN_..][epoch:  0, iter:     200, lr:(1.000e-03,)] [eta: 18 days, 6:19:41, time (data): 2.847 (2.777)] l_pix: 4.3985e-02
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/train_RLFN_blindsr_x4.yml > norunlog.log 2>&1 &

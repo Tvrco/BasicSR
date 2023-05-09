@@ -638,7 +638,10 @@ if __name__ == '__main__':
         # img_gt = util.uint2single(img)
         img_lq, img_hq = degradation_bsrgan(img_gt, sf=4)
         # print(img_lq.dtype)
-        name = p.split('\\')[-1]
+        try:
+            name = p.split('\\')[-1]
+        except:
+            name = p.split('/')[-1]
         util.imsave(util.single2uint(img_lq), save_path+f'\\{name}')
         # test_single
         # lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
