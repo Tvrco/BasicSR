@@ -622,12 +622,12 @@ if __name__ == '__main__':
     from tqdm import tqdm
     import torchvision
     try:
-        path = paths_from_folder('E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_HR')
-        save_path = 'E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_BSRGAN_LR'
-    except:
-        # google path
         path = paths_from_folder('/content/BasicSR/datasets/DF2K_val/GTmod4')
         save_path = '/content/BasicSR/datasets/DF2K_val/LRblindsrx4'
+    except:
+        # google path
+        path = paths_from_folder('E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_HR')
+        save_path = 'E:\\PyProject\\data\\2K_Resolution\\DIV2K\\DIV2K_valid_BSRGAN_LR'
     os.makedirs(save_path,exist_ok=True)
     sf = 4
     for p in tqdm(path):
@@ -639,9 +639,9 @@ if __name__ == '__main__':
         img_lq, img_hq = degradation_bsrgan(img_gt, sf=4)
         # print(img_lq.dtype)
         try:
-            name = p.split('\\')[-1]
-        except:
             name = p.split('/')[-1]
+        except:
+            name = p.split('\\')[-1]
         util.imsave(util.single2uint(img_lq), save_path+f'\\{name}')
         # test_single
         # lq_nearest =  cv2.resize(util.single2uint(img_lq), (int(sf*img_lq.shape[1]), int(sf*img_lq.shape[0])), interpolation=0)
