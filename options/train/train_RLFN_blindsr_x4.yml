@@ -70,7 +70,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/RLFN_F48M48/net_g_2000.pth
+  pretrain_network_g: experiments/net_g_2000.pth
   strict_load_g: true
   resume_state: ~
 
