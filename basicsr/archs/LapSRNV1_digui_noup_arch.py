@@ -23,14 +23,16 @@ class RecursiveBlock(nn.Module):
     def __init__(self, d):
         super(RecursiveBlock, self).__init__()
         self.block = nn.Sequential()
-        for i in range(d):  # 对于给定的循环次数 d，创建前向传播模块的序列
+        # 对于给定的循环次数 d，创建前向传播模块的序列
+        for i in range(d): 
             self.block.add_module("relu_" + str(i), nn.LeakyReLU(0.2, inplace=True))
             self.block.add_module(
                 "conv_" + str(i),
                 nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1, bias=True))
-
-    def forward(self, x):  # 定义前向传播函数
-        output = self.block(x)  # 应用前向传播模块的序列
+    # 定义前向传播函数
+    def forward(self, x):
+        # 应用前向传播模块的序列  
+        output = self.block(x)  
         return output
 
 
@@ -38,8 +40,8 @@ class FeatureEmbedding(nn.Module):
 
     def __init__(self, r, d):
         super(FeatureEmbedding, self).__init__()
-        self.recursive_block = RecursiveBlock(d)  # 创建递归块对象
-        self.num_recursion = r  # 存储递归的次数
+        self.recursive_block = RecursiveBlock(int(d))  # 创建递归块对象
+        self.num_recursion = int(r)  # 存储递归的次数
 
     def forward(self, x):  # 定义前向传播函数
         output = x.clone()  # 克隆输入张量以确保梯度不会流回输入
