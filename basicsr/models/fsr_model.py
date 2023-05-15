@@ -85,7 +85,7 @@ class FSRModel(BaseModel):
         self.optimizers.append(self.optimizer_g)
 
     def feed_data(self, data):
-        if self.is_train:
+        if data['lq32'] == None:
             self.lq = data['lq'].to(self.device)
             self.lq32 = data['lq32'].to(self.device)
             self.lq64 = data['lq64'].to(self.device)
