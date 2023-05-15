@@ -40,7 +40,11 @@ train:
   # type: PairedImageDataset
   # dataroot_gt: datasets/DF2K/DIV2K_train_HR_sub
   # dataroot_lq: datasets/DF2K/DIV2K_train_LR_bicubic_X4_sub
-
+  dataroot_gt: /content/BasicSR/datasets/Set5/GTmod8
+  dataroot_lq16: /content/BasicSR/datasets/Set5/LRbicx8
+  dataroot_lq32: /content/BasicSR/datasets/Set5/LRbicx4
+  dataroot_lq64: /content/BasicSR/datasets/Set5/LRbicx2
+  phase: train
   ema_decay: 0.999
   optim_g:
     type: Adam

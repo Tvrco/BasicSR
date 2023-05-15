@@ -105,7 +105,7 @@ class FSRModel(BaseModel):
         loss_dict = OrderedDict()
         # pixel loss
         if self.cri_pix:
-            if self.opt['train']['dataroot_lq32']:
+            if self.opt['phase'] == 'train' :
                 lx2_pix = self.cri_pix(self.srx2, self.lq32)
                 lx4_pix = self.cri_pix(self.srx4, self.lq64)
                 lx8_pix = self.cri_pix(self.output, self.gt)
