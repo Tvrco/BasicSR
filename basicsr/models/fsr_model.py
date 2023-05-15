@@ -1,3 +1,4 @@
+from sympy import true
 import torch
 from collections import OrderedDict
 from os import path as osp
@@ -85,12 +86,13 @@ class FSRModel(BaseModel):
         self.optimizers.append(self.optimizer_g)
 
     def feed_data(self, data):
-        if data['lq32'] == None:
+        if data['lq32'] != None:
             self.lq = data['lq'].to(self.device)
             self.lq32 = data['lq32'].to(self.device)
             self.lq64 = data['lq64'].to(self.device)
             if 'gt' in data:
                 self.gt = data['gt'].to(self.device)
+            train_flage = true
         else:
             self.lq = data['lq'].to(self.device)
             if 'gt' in data:
@@ -103,7 +105,7 @@ class FSRModel(BaseModel):
         loss_dict = OrderedDict()
         # pixel loss
         if self.cri_pix:
-            if not self.lq32:
+            if self.opt['train']['dataroot_lq32']:
                 lx2_pix = self.cri_pix(self.srx2, self.lq32)
                 lx4_pix = self.cri_pix(self.srx4, self.lq64)
                 lx8_pix = self.cri_pix(self.output, self.gt)
