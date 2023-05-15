@@ -72,8 +72,8 @@ class LapSrnMSV1(nn.Module):
         self.relu_features = nn.LeakyReLU(0.2, inplace=True)
 
         # 定义上采样层，将输入图像进行上采样
-        self.upscale_img = nn.ConvTranspose2d(in_channels=num_in_ch,
-                                            out_channels=num_in_ch,
+        self.upscale_img = nn.ConvTranspose2d(in_channels=3,
+                                            out_channels=3,
                                             kernel_size=4,
                                             stride=2,
                                             padding=0,
