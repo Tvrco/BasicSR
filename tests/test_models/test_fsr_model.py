@@ -21,10 +21,10 @@ dist: False
 # network structures
 network_g:
   type: LapSrnMSV1
-  r: 8, 
-  d: 5, 
-  upscale: 8,
-  num_in_ch: 3,
+  r: 8
+  d: 5
+  upscale: 8
+  num_in_ch: 3
   num_feat: 64
 
 
