@@ -100,7 +100,7 @@ val:
     lq32 = torch.rand((1, 3, 32, 32), dtype=torch.float32)
     lq64 = torch.rand((1, 3, 64, 64), dtype=torch.float32)
     data = dict(gt=gt, lq=lq,lq32=lq32,lq64=lq64)
-    print('data:',data)
+    # print('data:',data)
     model.feed_data(data)
     # check data shape
     assert model.lq.shape == (1, 3, 16, 16)
@@ -132,42 +132,42 @@ val:
 
     # ----------------- test nondist_validation -------------------- #
     # construct dataloader
-    # dataset_opt = dict(
-    #     name='Test',
-    #     dataroot_gt='tests/data/gt',
-    #     dataroot_lq='tests/data/lq',
-    #     io_backend=dict(type='disk'),
-    #     scale=4,
-    #     phase='val')
-    # dataset = FSRDataset(dataset_opt)
-    # dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=0)
-    # assert model.is_train is True
-    # with tempfile.TemporaryDirectory() as tmpdir:
-    #     model.opt['path']['visualization'] = tmpdir
-    #     model.nondist_validation(dataloader, 1, None, save_img=True)
-    #     assert model.is_train is True
-    #     # check metric_results
-    #     assert 'psnr' in model.metric_results
-    #     assert isinstance(model.metric_results['psnr'], float)
+    dataset_opt = dict(
+        name='Test',
+        dataroot_gt='tests/data/gt',
+        dataroot_lq='tests/data/lq',
+        io_backend=dict(type='disk'),
+        scale=4,
+        phase='val')
+    dataset = FSRDataset(dataset_opt)
+    dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=0)
+    assert model.is_train is True
+    with tempfile.TemporaryDirectory() as tmpdir:
+        model.opt['path']['visualization'] = tmpdir
+        model.nondist_validation(dataloader, 1, None, save_img=True)
+        assert model.is_train is True
+        # check metric_results
+        assert 'psnr' in model.metric_results
+        assert isinstance(model.metric_results['psnr'], float)
 
-    # # in validation mode
-    # with tempfile.TemporaryDirectory() as tmpdir:
-    #     model.opt['is_train'] = False
-    #     model.opt['val']['suffix'] = 'test'
-    #     model.opt['path']['visualization'] = tmpdir
-    #     model.opt['val']['pbar'] = True
-    #     model.nondist_validation(dataloader, 1, None, save_img=True)
-    #     # check metric_results
-    #     assert 'psnr' in model.metric_results
-    #     assert isinstance(model.metric_results['psnr'], float)
+    # in validation mode
+    with tempfile.TemporaryDirectory() as tmpdir:
+        model.opt['is_train'] = False
+        model.opt['val']['suffix'] = 'test'
+        model.opt['path']['visualization'] = tmpdir
+        model.opt['val']['pbar'] = True
+        model.nondist_validation(dataloader, 1, None, save_img=True)
+        # check metric_results
+        assert 'psnr' in model.metric_results
+        assert isinstance(model.metric_results['psnr'], float)
 
-    #     # if opt['val']['suffix'] is None
-    #     model.opt['val']['suffix'] = None
-    #     model.opt['name'] = 'demo'
-    #     model.opt['path']['visualization'] = tmpdir
-    #     model.nondist_validation(dataloader, 1, None, save_img=True)
-    #     # check metric_results
-    #     assert 'psnr' in model.metric_results
-    #     assert isinstance(model.metric_results['psnr'], float)
+        # if opt['val']['suffix'] is None
+        model.opt['val']['suffix'] = None
+        model.opt['name'] = 'demo'
+        model.opt['path']['visualization'] = tmpdir
+        model.nondist_validation(dataloader, 1, None, save_img=True)
+        # check metric_results
+        assert 'psnr' in model.metric_results
+        assert isinstance(model.metric_results['psnr'], float)
 if __name__ == "__main__":
     test_srmodel()
