@@ -232,6 +232,38 @@ def paired_paths_from_folder(folders, keys, filename_tmpl):
         paths.append(dict([(f'{input_key}_path', input_path), (f'{gt_key}_path', gt_path)]))
     return paths
 
+def paired_paths_from_three_folder(folders, keys, filename_tmpl):
+    """Generate paired paths from folders.
+    Returns:
+        list[str]: Returned path list.
+    """
+    assert len(folders) == 4, ('The len of folders should be 2 with [input_folder, gt_folder]. '
+                               f'But got {len(folders)}')
+    assert len(keys) == 4, f'The len of keys should be 2 with [input_key, gt_key]. But got {len(keys)}'
+    input_folder,lq_folder_32,lq_folder_64, gt_folder = folders
+    input_key,lq_key_32,lq_key_64,gt_key = keys
+
+    input_paths = list(scandir(input_folder))
+    input_paths_lq32 = list(scandir(lq_folder_32))
+    input_paths_lq64 = list(scandir(lq_folder_64))
+    gt_paths = list(scandir(gt_folder))
+    assert len(input_paths) == len(gt_paths) == len(input_paths_lq32) == len(input_paths_lq64), (f'{input_key} and {gt_key} and {lq_key_32} and {lq_key_64} datasets have different number of images: '
+                                               f'{len(input_paths)}, {len(gt_paths)}.')
+    paths = []
+    for gt_path in gt_paths:
+        basename, ext = osp.splitext(osp.basename(gt_path))
+        input_name = f'{filename_tmpl.format(basename)}{ext}'
+        input_path = osp.join(input_folder, input_name)
+        input_path_lq32 = osp.join(lq_folder_32, input_name)
+        input_path_lq64 = osp.join(lq_folder_64, input_name)
+        assert input_name in input_paths, f'{input_name} is not in {input_key}_paths.'
+        assert input_name in input_paths_lq32, f'{input_name} is not in {lq_key_32}_paths.'
+        assert input_name in input_paths_lq64, f'{input_name} is not in {lq_key_64}_paths.'
+        gt_path = osp.join(gt_folder, gt_path)
+        paths.append(dict([(f'{input_key}_path', input_path), (f'{lq_key_32}_path', input_path_lq32), (f'{lq_key_64}_path', input_path_lq64), (f'{gt_key}_path', gt_path)]))
+        # ex:lq_path, lq32_path,lq64_path, gt_path
+    return paths
+
 
 def paths_from_folder(folder):
     """Generate paths from folder.

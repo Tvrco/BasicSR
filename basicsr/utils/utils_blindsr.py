@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-import cv2
-import torch
 try:
     from . import utils_image as util
 except:
     import utils_image as util
+import numpy as np
+import cv2
+import torch
 import random
 from scipy import ndimage
 import scipy

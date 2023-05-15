@@ -9,14 +9,14 @@ from basicsr.metrics import calculate_metric
 from basicsr.utils import get_root_logger, imwrite, tensor2img
 from basicsr.utils.registry import MODEL_REGISTRY
 from .base_model import BaseModel
-
+# from .sr_model import SRModel
 
 @MODEL_REGISTRY.register()
-class SRModel(BaseModel):
+class FSRModel(BaseModel):
     """Base SR model for single image super-resolution."""
 
     def __init__(self, opt):
-        super(SRModel, self).__init__(opt)
+        super(FSRModel, self).__init__(opt)
 
         # define network
         self.net_g = build_network(opt['network_g'])
@@ -86,20 +86,25 @@ class SRModel(BaseModel):
 
     def feed_data(self, data):
         self.lq = data['lq'].to(self.device)
+        self.lq32 = data['lq32'].to(self.device)
+        self.lq64 = data['lq64'].to(self.device)
         if 'gt' in data:
             self.gt = data['gt'].to(self.device)
 
     def optimize_parameters(self, current_iter):
         self.optimizer_g.zero_grad()
-        self.output = self.net_g(self.lq)
+        self.srx2,self.srx4,self.output = self.net_g(self.lq)
 
         l_total = 0
         loss_dict = OrderedDict()
         # pixel loss
         if self.cri_pix:
-            l_pix = self.cri_pix(self.output, self.gt)
-            l_total += l_pix
-            loss_dict['l_pix'] = l_pix
+            lx2_pix = self.cri_pix(self.srx2, self.lq32)
+            lx4_pix = self.cri_pix(self.srx4, self.lq64)
+            lx8_pix = self.cri_pix(self.output, self.gt)
+            l_pix_three = lx8_pix+lx2_pix+lx4_pix # todo:歧义
+            l_total += l_pix_three
+            loss_dict['l_pix'] = l_pix_three
         # perceptual loss
         if self.cri_perceptual:
             l_percep, l_style = self.cri_perceptual(self.output, self.gt)
