@@ -34,8 +34,13 @@ class FSRDataset(data.Dataset):
             self.paths = paired_paths_from_meta_info_file([self.lq_folder, self.gt_folder], ['lq', 'gt'],
                                                           self.opt['meta_info_file'], self.filename_tmpl)
         else:
-            self.paths = paired_paths_from_three_folder(
-                [self.lq_folder16, self.lq_folder32, self.lq_folder64, self.gt_folder], ['lq', 'lq32', 'lq64', 'gt'],
+            if self.opt['phase'] == 'train':
+                self.paths = paired_paths_from_three_folder(
+                    [self.lq_folder16, self.lq_folder32, self.lq_folder64, self.gt_folder], ['lq', 'lq32', 'lq64', 'gt'],
+                    self.filename_tmpl)
+            else:
+                self.paths = paired_paths_from_folder(
+                [self.lq_folder16, self.gt_folder], ['lq', 'gt'],
                 self.filename_tmpl)
 
     def __getitem__(self, index):
