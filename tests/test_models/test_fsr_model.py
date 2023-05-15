@@ -97,9 +97,9 @@ val:
     # prepare data
     gt = torch.rand((1, 3, 128, 128), dtype=torch.float32)
     lq = torch.rand((1, 3, 16, 16), dtype=torch.float32)
-    lqx2 = torch.rand((1, 3, 32, 32), dtype=torch.float32)
-    lqx4 = torch.rand((1, 3, 64, 64), dtype=torch.float32)
-    data = dict(gt=gt, lq=lq,lqx2=lqx2,lqx4=lqx4)
+    lq32 = torch.rand((1, 3, 32, 32), dtype=torch.float32)
+    lq64 = torch.rand((1, 3, 64, 64), dtype=torch.float32)
+    data = dict(gt=gt, lq=lq,lq32=lq32,lq64=lq64)
     print('data:',data)
     model.feed_data(data)
     # check data shape
