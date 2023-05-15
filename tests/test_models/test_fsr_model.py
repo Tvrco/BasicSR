@@ -36,6 +36,11 @@ path:
 
 # training settings
 train:
+
+  # type: PairedImageDataset
+  # dataroot_gt: datasets/DF2K/DIV2K_train_HR_sub
+  # dataroot_lq: datasets/DF2K/DIV2K_train_LR_bicubic_X4_sub
+
   ema_decay: 0.999
   optim_g:
     type: Adam
@@ -107,6 +112,16 @@ val:
     assert model.gt.shape == (1, 3, 128, 128)
 
     # ----------------- test optimize_parameters -------------------- #
+    dataset_opt = dict(
+        name='Test',
+        dataroot_gt='/content/BasicSR/datasets/Set5/GTmod8',
+        dataroot_lq16='/content/BasicSR/datasets/Set5/LRbicx8',
+        dataroot_lq32='/content/BasicSR/datasets/Set5/LRbicx4',
+        dataroot_lq64='/content/BasicSR/datasets/Set5/LRbicx2',
+        io_backend=dict(type='disk'),
+        scale=8,
+        phase='train')
+    dataset = FSRDataset(dataset_opt)
     model.optimize_parameters(1)
     assert model.output.shape == (1, 3, 128, 128)
     assert isinstance(model.log_dict, dict)
@@ -132,16 +147,7 @@ val:
 
     # ----------------- test nondist_validation -------------------- #
     # construct dataloader
-    dataset_opt = dict(
-        name='Test',
-        dataroot_gt='/content/BasicSR/datasets/Set5/GTmod8',
-        dataroot_lq16='/content/BasicSR/datasets/Set5/LRbicx8',
-        dataroot_lq32='/content/BasicSR/datasets/Set5/LRbicx4',
-        dataroot_lq64='/content/BasicSR/datasets/Set5/LRbicx2',
-        io_backend=dict(type='disk'),
-        scale=8,
-        phase='train')
-    dataset = FSRDataset(dataset_opt)
+
     dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=0)
     assert model.is_train is True
     with tempfile.TemporaryDirectory() as tmpdir:
