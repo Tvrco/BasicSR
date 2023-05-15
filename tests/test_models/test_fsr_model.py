@@ -134,12 +134,12 @@ val:
     # construct dataloader
     dataset_opt = dict(
         name='Test',
-        dataroot_gt='/content/BasicSR/datasets/Set5/GTmod12',
-        dataroot_lq='/content/BasicSR/datasets/Set5/LRbicx4',
+        dataroot_gt='/content/BasicSR/datasets/Set5/GTmod8',
+        dataroot_lq='/content/BasicSR/datasets/Set5/LRbicx8',
         dataroot_lq32=None,
         dataroot_lq64=None,
         io_backend=dict(type='disk'),
-        scale=8,
+        scale=8
         phase='val')
     dataset = FSRDataset(dataset_opt)
     dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=0)
