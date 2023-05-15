@@ -1,9 +1,21 @@
 import torch
 from torch import nn as nn
 import math
+import numpy as np
 
 from basicsr.utils.registry import ARCH_REGISTRY
-from .arch_util import Upsample, make_layer
+# from .arch_util import Upsample, make_layer
+def get_upsample_filter(size):
+    """Make a 2D bilinear kernel suitable for upsampling"""
+    factor = (size + 1)     # 计算上采样因子
+    if size % 2 == 1:       # 如果 size 是奇数，则中心位置为 factor - 1；如果是偶数，则中心位置为 factor - 0.5
+        center = factor - 1 
+    else:
+        center = factor - 0.5
+    og = np.ogrid[:size, :size]  # 创建原点网格
+     # 创建二维双线性上采样核
+    filter = (1 - abs(og[0] - center) / factor) * (1 - abs(og[1] - center) / factor)
+    return torch.from_numpy(filter).float()  # 返回二维双线性上采样核的张量表示
 
 
 class RecursiveBlock(nn.Module):
@@ -35,7 +47,7 @@ class FeatureEmbedding(nn.Module):
             output = self.recursive_block(output) + x  # 将递归块应用到输出上并添加输入张量
         return output
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class LapSrnMSV1(nn.Module):
 
     def __init__(self,
@@ -145,3 +157,21 @@ class LapSrnMSV1(nn.Module):
 
         # 返回输出的图片列表
         return output_images
+if __name__ == "__main__":
+    def count_parameters(model):
+        total_params = 0
+        conv_count = 0
+        for name, param in model.named_parameters():
+            print(f"{name}".ljust(45), f"{tuple(param.shape)}".ljust(20), f"param:{param.numel():,}")
+            if param.requires_grad:
+                total_params += param.numel()
+        for name,module in model.named_modules():
+            if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
+                conv_count += 1
+        print(f"Total number of trainable parameters: {total_params:,}")
+        print(f"Total number of conv2d: {conv_count:,}")
+        return total_params
+
+    model = LapSrnMSV1(r=8, d=5).cuda()
+    print(model)
+    count_parameters(model)
