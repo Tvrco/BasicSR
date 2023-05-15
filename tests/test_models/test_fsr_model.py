@@ -135,7 +135,7 @@ val:
     dataset_opt = dict(
         name='Test',
         dataroot_gt='/content/BasicSR/datasets/Set5/GTmod8',
-        dataroot_lq='/content/BasicSR/datasets/Set5/LRbicx8',
+        dataroot_lq16='/content/BasicSR/datasets/Set5/LRbicx8',
         dataroot_lq32=None,
         dataroot_lq64=None,
         io_backend=dict(type='disk'),

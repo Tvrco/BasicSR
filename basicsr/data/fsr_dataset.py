@@ -36,12 +36,11 @@ class FSRDataset(data.Dataset):
         else:
             if self.opt['phase'] == 'train':
                 self.paths = paired_paths_from_three_folder(
-                    [self.lq_folder16, self.lq_folder32, self.lq_folder64, self.gt_folder], ['lq', 'lq32', 'lq64', 'gt'],
-                    self.filename_tmpl)
+                    [self.lq_folder16, self.lq_folder32, self.lq_folder64, self.gt_folder],
+                    ['lq', 'lq32', 'lq64', 'gt'], self.filename_tmpl)
             else:
-                self.paths = paired_paths_from_folder(
-                [self.lq_folder16, self.gt_folder], ['lq', 'gt'],
-                self.filename_tmpl)
+                self.paths = paired_paths_from_folder([self.lq_folder16, self.gt_folder], ['lq', 'gt'],
+                                                      self.filename_tmpl)
 
     def __getitem__(self, index):
         if self.file_client is None:
@@ -85,11 +84,13 @@ class FSRDataset(data.Dataset):
         # TODO: It is better to update the datasets, rather than force to crop
         if self.opt['phase'] != 'train':
             img_gt = img_gt[0:img_lq.shape[0] * scale, 0:img_lq.shape[1] * scale, :]
-
-        # BGR to RGB, HWC to CHW, numpy to tensor
-        img_gt, img_lq, img_lq32, img_lq64 = img2tensor([img_gt, img_lq, img_lq32, img_lq64],
-                                                        bgr2rgb=True,
-                                                        float32=True)
+        if self.opt['phase'] == 'train':
+            # BGR to RGB, HWC to CHW, numpy to tensor
+            img_gt, img_lq, img_lq32, img_lq64 = img2tensor([img_gt, img_lq, img_lq32, img_lq64],
+                                                            bgr2rgb=True,
+                                                            float32=True)
+        else:
+            img_gt, img_lq = img2tensor([img_gt, img_lq], bgr2rgb=True, float32=True)
         # normalize
         if self.mean is not None or self.std is not None:
             normalize(img_lq, self.mean, self.std, inplace=True)
@@ -108,12 +109,7 @@ class FSRDataset(data.Dataset):
                 'gt_path': gt_path
             }
         else:
-            return {
-                'lq': img_lq,
-                'gt': img_gt,
-                'lq_path': lq_path,
-                'gt_path': gt_path
-            }
+            return {'lq': img_lq, 'gt': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
 
     def __len__(self):
         return len(self.paths)
