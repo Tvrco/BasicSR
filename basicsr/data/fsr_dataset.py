@@ -86,9 +86,7 @@ class FSRDataset(data.Dataset):
             img_gt = img_gt[0:img_lq.shape[0] * scale, 0:img_lq.shape[1] * scale, :]
         if self.opt['phase'] == 'train':
             # BGR to RGB, HWC to CHW, numpy to tensor
-            img_gt, img_lq, img_lq32, img_lq64 = img2tensor([img_gt, img_lq, img_lq32, img_lq64],
-                                                            bgr2rgb=True,
-                                                            float32=True)
+            img_gt, img_lq, img_lq32, img_lq64 = img2tensor([img_gt, img_lq, img_lq32, img_lq64],bgr2rgb=True,float32=True)
         else:
             img_gt, img_lq = img2tensor([img_gt, img_lq], bgr2rgb=True, float32=True)
         # normalize
