@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 from basicsr.utils.registry import ARCH_REGISTRY
-# from .arch_util import Upsample, make_layer
+from .arch_util import Upsample, make_layer
 def get_upsample_filter(size):
     """Make a 2D bilinear kernel suitable for upsampling"""
     factor = (size + 1)     # 计算上采样因子
@@ -47,7 +47,7 @@ class FeatureEmbedding(nn.Module):
             output = self.recursive_block(output) + x  # 将递归块应用到输出上并添加输入张量
         return output
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class LapSrnMSV1(nn.Module):
 
     def __init__(self,
