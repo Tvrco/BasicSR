@@ -85,12 +85,16 @@ class FSRModel(BaseModel):
         self.optimizers.append(self.optimizer_g)
 
     def feed_data(self, data):
-        self.lq = data['lq'].to(self.device)
-        self.lq32 = data['lq32'].to(self.device)
-        self.lq64 = data['lq64'].to(self.device)
-        if 'gt' in data:
-            self.gt = data['gt'].to(self.device)
-
+        if self.opt['phase'] == 'train':
+            self.lq = data['lq'].to(self.device)
+            self.lq32 = data['lq32'].to(self.device)
+            self.lq64 = data['lq64'].to(self.device)
+            if 'gt' in data:
+                self.gt = data['gt'].to(self.device)
+        else:
+            self.lq = data['lq'].to(self.device)
+            if 'gt' in data:
+                self.gt = data['gt'].to(self.device)
     def optimize_parameters(self, current_iter):
         self.optimizer_g.zero_grad()
         self.srx2,self.srx4,self.output = self.net_g(self.lq)
@@ -99,10 +103,14 @@ class FSRModel(BaseModel):
         loss_dict = OrderedDict()
         # pixel loss
         if self.cri_pix:
-            lx2_pix = self.cri_pix(self.srx2, self.lq32)
-            lx4_pix = self.cri_pix(self.srx4, self.lq64)
-            lx8_pix = self.cri_pix(self.output, self.gt)
-            l_pix_three = lx8_pix+lx2_pix+lx4_pix # todo:歧义
+            if self.opt['phase'] == 'train':
+                lx2_pix = self.cri_pix(self.srx2, self.lq32)
+                lx4_pix = self.cri_pix(self.srx4, self.lq64)
+                lx8_pix = self.cri_pix(self.output, self.gt)
+                l_pix_three = lx8_pix+lx2_pix+lx4_pix # todo:歧义
+            else:
+                lx8_pix = self.cri_pix(self.output, self.gt)
+                l_pix_three = lx8_pix
             l_total += l_pix_three
             loss_dict['l_pix'] = l_pix_three
         # perceptual loss
