@@ -54,17 +54,16 @@ class FSRDataset(data.Dataset):
         img_bytes = self.file_client.get(lq_path, 'lq')
         img_lq = imfrombytes(img_bytes, float32=True)
 
-        lq32_path = self.paths[index]['lq32_path']
-        img_bytes = self.file_client.get(lq32_path, 'lq32')
-        img_lq32 = imfrombytes(img_bytes, float32=True)
-
-        lq64_path = self.paths[index]['lq64_path']
-        img_bytes = self.file_client.get(lq64_path, 'lq64')
-        img_lq64 = imfrombytes(img_bytes, float32=True)
-
         # augmentation for training
         if self.opt['phase'] == 'train':
             gt_size = self.opt['gt_size']
+            lq32_path = self.paths[index]['lq32_path']
+            img_bytes = self.file_client.get(lq32_path, 'lq32')
+            img_lq32 = imfrombytes(img_bytes, float32=True)
+
+            lq64_path = self.paths[index]['lq64_path']
+            img_bytes = self.file_client.get(lq64_path, 'lq64')
+            img_lq64 = imfrombytes(img_bytes, float32=True)
             # # random crop
             # img_gt, img_lq = paired_random_crop(img_gt, img_lq, gt_size, scale, gt_path)
             # # flip, rotation 翻转和选择
@@ -92,17 +91,24 @@ class FSRDataset(data.Dataset):
             normalize(img_lq32, self.mean, self.std, inplace=True)
             normalize(img_lq64, self.mean, self.std, inplace=True)
             normalize(img_gt, self.mean, self.std, inplace=True)
-
-        return {
-            'lq': img_lq,
-            'lq32': img_lq32,
-            'lq64': img_lq64,
-            'gt': img_gt,
-            'lq_path': lq_path,
-            'lq32_path': lq32_path,
-            'lq64_path': lq64_path,
-            'gt_path': gt_path
-        }
+        if self.opt['phase'] == 'train':
+            return {
+                'lq': img_lq,
+                'lq32': img_lq32,
+                'lq64': img_lq64,
+                'gt': img_gt,
+                'lq_path': lq_path,
+                'lq32_path': lq32_path,
+                'lq64_path': lq64_path,
+                'gt_path': gt_path
+            }
+        else:
+            return {
+                'lq': img_lq,
+                'gt': img_gt,
+                'lq_path': lq_path,
+                'gt_path': gt_path
+            }
 
     def __len__(self):
         return len(self.paths)
