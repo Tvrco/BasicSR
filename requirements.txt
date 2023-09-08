@@ -8,3 +8,5 @@ scikit-image
 scipy
 tqdm
 yapf
+thop
+torchinfo

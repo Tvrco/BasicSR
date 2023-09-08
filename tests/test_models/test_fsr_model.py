@@ -4,6 +4,7 @@ import yaml
 
 from basicsr.archs.LapSRNV1_digui_noup_arch import LapSrnMSV1
 from basicsr.data.fsr_dataset import FSRDataset
+from basicsr.data.paired_image_dataset import PairedImageDataset
 from basicsr.losses.basic_loss import L1Loss, PerceptualLoss
 from basicsr.models.fsr_model import FSRModel
 
@@ -119,13 +120,11 @@ val:
     dataset_opt = dict(
         name='Test',
         dataroot_gt='/content/BasicSR/datasets/Set5/GTmod8',
-        dataroot_lq16='/content/BasicSR/datasets/Set5/LRbicx8',
-        dataroot_lq32='/content/BasicSR/datasets/Set5/LRbicx4',
-        dataroot_lq64='/content/BasicSR/datasets/Set5/LRbicx2',
+        dataroot_lq='/content/BasicSR/datasets/Set5/LRbicx8',
         io_backend=dict(type='disk'),
         scale=8,
-        phase='train')
-    dataset = FSRDataset(dataset_opt)
+        phase='val')
+    dataset = PairedImageDataset(dataset_opt)
     model.optimize_parameters(1)
     assert model.output.shape == (1, 3, 128, 128)
     assert isinstance(model.log_dict, dict)

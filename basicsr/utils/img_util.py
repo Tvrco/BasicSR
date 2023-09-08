@@ -125,10 +125,12 @@ def imfrombytes(content, flag='color', float32=False):
         ndarray: Loaded image array.
     """
     img_np = np.frombuffer(content, np.uint8)
+    # print('-'*50,'\n','test',img_np.shape,'-'*50,'\n')
     imread_flags = {'color': cv2.IMREAD_COLOR, 'grayscale': cv2.IMREAD_GRAYSCALE, 'unchanged': cv2.IMREAD_UNCHANGED}
     img = cv2.imdecode(img_np, imread_flags[flag])
     if float32:
         img = img.astype(np.float32) / 255.
+    # print('-'*50,'\n','test',img.shape,'-'*50,'\n')
     return img
 
 

@@ -60,7 +60,7 @@ class FSRDataset(data.Dataset):
 
         # augmentation for training
         if self.opt['phase'] == 'train':
-            gt_size = self.opt['gt_size']
+            # gt_size = self.opt['gt_size']
             lq32_path = self.paths[index]['lq32_path']
             img_bytes = self.file_client.get(lq32_path, 'lq32')
             img_lq32 = imfrombytes(img_bytes, float32=True)

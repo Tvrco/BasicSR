@@ -64,6 +64,16 @@ class FSRModel(BaseModel):
         else:
             self.cri_perceptual = None
 
+        if train_opt.get('fan_opt'):
+            self.cri_fan = build_loss(train_opt['fan_opt']).to(self.device)
+        else:
+            self.cri_fan = None
+
+        if train_opt.get('mse_opt'):
+            self.cri_mse = build_loss(train_opt['mse_opt']).to(self.device)
+        else:
+            self.cri_mse = None
+
         if self.cri_pix is None and self.cri_perceptual is None:
             raise ValueError('Both pixel and perceptual losses are None.')
 
@@ -86,33 +96,57 @@ class FSRModel(BaseModel):
         self.optimizers.append(self.optimizer_g)
 
     def feed_data(self, data):
-        if data['lq32'] != None:
+        if 'lq32' in data:
             self.lq = data['lq'].to(self.device)
             self.lq32 = data['lq32'].to(self.device)
             self.lq64 = data['lq64'].to(self.device)
             if 'gt' in data:
                 self.gt = data['gt'].to(self.device)
             train_flage = true
+            if 'fb_128' in data:
+                self.fb_128 = data['fb_128'].to(self.device)
+                self.fb_32 = data['fb_32'].to(self.device)
+                self.fb_64 = data['fb_64'].to(self.device)
         else:
             self.lq = data['lq'].to(self.device)
             if 'gt' in data:
                 self.gt = data['gt'].to(self.device)
     def optimize_parameters(self, current_iter):
+        # train_opt = self.opt['train']
+        # print(train_opt)
         self.optimizer_g.zero_grad()
-        self.srx2,self.srx4,self.output = self.net_g(self.lq)
+        self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g(self.lq)
 
         l_total = 0
         loss_dict = OrderedDict()
         # pixel loss
         if self.cri_pix:
-            if self.opt['phase'] == 'train' :
-                lx2_pix = self.cri_pix(self.srx2, self.lq32)
-                lx4_pix = self.cri_pix(self.srx4, self.lq64)
-                lx8_pix = self.cri_pix(self.output, self.gt)
-                l_pix_three = lx8_pix+lx2_pix+lx4_pix # todo:歧义
+            # if train_opt['dataroot_lq32'] != None :
+            #     lx2_pix = self.cri_pix(self.srx2, self.lq32)
+            #     lx4_pix = self.cri_pix(self.srx4, self.lq64)
+            #     lx8_pix = self.cri_pix(self.output, self.gt)
+            #     l_pix_three = lx8_pix+lx2_pix+lx4_pix # todo:歧义
+            # else:
+            #     lx8_pix = self.cri_pix(self.output, self.gt)
+            #     l_pix_three = lx8_pix
+            lx2_pix = self.cri_pix(self.srx2, self.lq32)
+            lx4_pix = self.cri_pix(self.srx4, self.lq64)
+            lx8_pix = self.cri_pix(self.output, self.gt)
+            if self.cri_fan:
+                fan_pix_64 = self.cri_fan(self.srx4, self.lq64)
+                fan_pix_128 = self.cri_fan(self.output, self.gt)
+                fan_pix = fan_pix_64 + fan_pix_128
+                l_pix_three = lx8_pix+lx2_pix+lx4_pix+fan_pix # todo:歧义
+                loss_dict['l_fan'] = fan_pix
+            elif self.cri_mse:
+                mse_32 = self.cri_mse(self.fbsr32,self.fb_32)
+                mse_64 = self.cri_mse(self.fbsr64,self.fb_64)
+                mse_128 = self.cri_mse(self.fbsr128,self.fb_128)
+                mse_pix = mse_32+mse_64+mse_128
+                l_pix_three = lx8_pix+lx2_pix+lx4_pix+mse_pix # todo:歧义
+                loss_dict['l_mse'] = mse_pix
             else:
-                lx8_pix = self.cri_pix(self.output, self.gt)
-                l_pix_three = lx8_pix
+                l_pix_three = lx8_pix+lx2_pix+lx4_pix# todo:歧义
             l_total += l_pix_three
             loss_dict['l_pix'] = l_pix_three
         # perceptual loss
