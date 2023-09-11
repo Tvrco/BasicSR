@@ -692,7 +692,7 @@ class LPEB(nn.Module):
         return sr,esdb_1_2,LPE_HR_2x
 
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class LapSrnMSV4_11(nn.Module):
     def __init__(self,num_out_ch=3,dim=128):
         super(LapSrnMSV4_11, self).__init__()
@@ -753,7 +753,71 @@ class LapSrnMSV4_11(nn.Module):
         convt_DLB3 = self.convt_DLB3(convt_SRB3)
         up_TRB3 = self.up_TRB3(self.relu(convt_TRB3))
         HR_8x = convt_DLB3 + up_TRB3
-        HR_8x,_,fb_sr8 = self.LPEB_3(HR_4x)
+        HR_8x,_,fb_sr8 = self.LPEB_3(HR_8x)
+        return HR_2x,HR_4x,HR_8x,fb_sr2,fb_sr4,fb_sr8
+
+@ARCH_REGISTRY.register()
+class LapSrnMSV4_12(nn.Module):
+    def __init__(self,num_out_ch=3,dim=64):
+        super(LapSrnMSV4_12, self).__init__()
+        kwargs = {'padding': 1}
+        self.fea_conv = BSConvU(in_channels=3, out_channels=64, kernel_size=3, **kwargs)
+        # self.conv_input = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.relu = nn.GELU()
+        
+        self.convt_SRB1 = BSConvU(64, 64, kernel_size=3, **kwargs)
+        self.convt_DLB1 = _Conv_Block(num_out_ch=64)
+        self.down_DLB1 = BSConvU(64, 3, kernel_size=3, **kwargs)
+        self.LPEB = LPEB(dim=dim)
+
+        self.convt_TRB1 = BSConvU(64, 64, kernel_size=3, **kwargs)
+        self.up_TRB1 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=num_out_ch)
+
+        self.convt_SRB2 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
+        self.convt_DLB2 = _Conv_Block(num_out_ch=64)
+        self.down_DLB2 = BSConvU(64, 3, kernel_size=3, **kwargs)
+        # self.LPEB_2 = LPEB(dim=dim)
+
+
+        self.convt_TRB2 = BSConvU(64, 64, kernel_size=3, **kwargs)
+        self.convt_up_TRB2 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
+        self.up_TRB2 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=num_out_ch)
+
+        # self.LPEB_3 = LPEB(dim=dim)
+        self.convt_SRB3 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
+        self.convt_TRB3 = BSConvU(64, 64, kernel_size=3, **kwargs)
+        self.convt_up_TRB3 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
+        self.up_TRB3 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=3)
+        self.convt_DLB3 = _Conv_Block(num_out_ch=3)
+
+    def forward(self, x):
+        out = self.relu(self.fea_conv(x))
+        convt_SRB1 = self.convt_SRB1(out) # 64*16*16
+        convt_TRB1 = self.convt_TRB1(convt_SRB1) # 64*16*16 双路
+        convt_DLB1 = self.convt_DLB1(convt_SRB1) # 64*32*32
+        down_DLB1 = self.down_DLB1(self.relu(convt_DLB1)) # 3*32*32
+        up_TRB1 = self.up_TRB1(self.relu(convt_TRB1)) # 3*32*32
+        # print(down_DLB1.shape)
+        # print(up_TRB1.shape)
+        HR_2x = down_DLB1 + up_TRB1
+        HR_2x,esdb_1_2,fb_sr2 = self.LPEB(HR_2x)
+
+        convt_SRB2 = self.convt_SRB2(HR_2x)+self.relu(esdb_1_2)
+        convt_TRB2 = self.convt_up_TRB2(up_TRB1)
+        convt_TRB2 = self.convt_TRB2(convt_TRB2)
+        convt_DLB2 = self.convt_DLB2(convt_SRB2)
+        down_DLB2 = self.down_DLB2(self.relu(convt_DLB2))# 3*32*32
+        up_TRB2 = self.up_TRB2(self.relu(convt_TRB2))
+        HR_4x = down_DLB2 + up_TRB2
+        HR_4x,esdb_1_2,fb_sr4 = self.LPEB(HR_4x)
+
+        convt_SRB3 = self.convt_SRB3(HR_4x)+self.relu(esdb_1_2)
+        convt_TRB3 = self.convt_up_TRB3(up_TRB2)
+        convt_TRB3 = self.convt_TRB3(convt_TRB3)
+        convt_DLB3 = self.convt_DLB3(convt_SRB3)
+        up_TRB3 = self.up_TRB3(self.relu(convt_TRB3))
+        HR_8x = convt_DLB3 + up_TRB3
+        HR_8x,_,fb_sr8 = self.LPEB(HR_8x)
         return HR_2x,HR_4x,HR_8x,fb_sr2,fb_sr4,fb_sr8
 
 class L1_Charbonnier_loss(nn.Module):
@@ -783,7 +847,7 @@ if __name__ == "__main__":
         print(f"Total number of conv2d: {conv_count:,}")
         return total_params
 
-    model = LapSrnMSV4_11(num_out_ch=3)
+    model = LapSrnMSV4_12(num_out_ch=3)
     # model2 = LPEB()
     # print(model)
     # count_parameters(model)

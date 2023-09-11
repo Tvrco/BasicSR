@@ -66,7 +66,11 @@ class BFSRDataset(data.Dataset):
     def _get_boundarymaps(self, index,size,gauss_flag=False):
         boundarymaps = np.zeros((size, size, len(self.list_boundary)))
         boundarymaps_list = []
-        img_index = self.paths[index]['gt_path'].split('\\')[-1].split('.')[0]
+        try:
+            img_index = self.paths[index]['gt_path'].split('/')[-1].split('.')[0]
+        except:
+            img_index = self.paths[index]['gt_path'].split('\\')[-1].split('.')[0]
+        # print(f"img_index:{img_index}")
         for i, tail in enumerate(self.list_boundary):
             line_path = os.path.join(self.faceb_gt,str(img_index) + tail +".jpg") # 固定从64*64获取人脸先验，32*32,16*16直接resize
             # print("dir-------", line_path)
