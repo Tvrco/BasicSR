@@ -270,6 +270,20 @@ class FSRModel(BaseModel):
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
+                    if self.cri_mse:
+                        import torchvision
+                        reshaped_tensor  = visuals['fb_128'].view(16*11, 1, 128,128)
+                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb128_{current_iter}.png')
+                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
+
+
+                        reshaped_tensor  = visuals['fb_64'].view(16*11, 1, 64,64)
+                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb164_{current_iter}.png')
+                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
+                        
+                        reshaped_tensor  = visuals['fb_32'].view(16*11, 1, 32,32)
+                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb32_{current_iter}.png')
+                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
                 else:
                     if self.opt['val']['suffix']:
                         save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
@@ -318,6 +332,11 @@ class FSRModel(BaseModel):
         out_dict['result'] = self.output.detach().cpu()
         if hasattr(self, 'gt'):
             out_dict['gt'] = self.gt.detach().cpu()
+        # 存放fb图片
+        if self.cri_mse:
+            out_dict['fb_128'] = self.fb_128.detach().cpu()
+            out_dict['fb_64'] = self.fb_164.detach().cpu()
+            out_dict['fb_32'] = self.fb_32.detach().cpu()
         return out_dict
  
     def save(self, epoch, current_iter):

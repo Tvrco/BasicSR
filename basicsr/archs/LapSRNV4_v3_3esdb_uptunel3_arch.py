@@ -831,29 +831,108 @@ class L1_Charbonnier_loss(nn.Module):
         error = torch.sqrt( diff * diff + self.eps )
         loss = torch.sum(error) 
         return loss
-    
-if __name__ == "__main__":
-    def count_parameters(model):
-        total_params = 0
-        conv_count = 0
-        for name, param in model.named_parameters():
-            print(f"{name}".ljust(45), f"{tuple(param.shape)}".ljust(20), f"param:{param.numel():,}")
-            if param.requires_grad:
-                total_params += param.numel()
-        for name,module in model.named_modules():
-            if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
-                conv_count += 1
-        print(f"Total number of trainable parameters: {total_params:,}")
-        print(f"Total number of conv2d: {conv_count:,}")
-        return total_params
 
-    model = LapSrnMSV4_12(num_out_ch=3)
-    # model2 = LPEB()
-    # print(model)
-    # count_parameters(model)
-    # print(count_conv_layers(model))
-    summaryv2(model, (1,3,16,16))
-    # summaryv1(model,(3,16,16))
-    # output_images = model(torch.randn((2, 3, 16, 16)))
-    # for i, img in enumerate(output_images):
-    #     print(f"Layer {i+1}".ljust(5),f": {img.shape}")
+
+'''
+验证model
+'''
+# if __name__ == "__main__":
+#     def count_parameters(model):
+#         total_params = 0
+#         conv_count = 0
+#         for name, param in model.named_parameters():
+#             print(f"{name}".ljust(45), f"{tuple(param.shape)}".ljust(20), f"param:{param.numel():,}")
+#             if param.requires_grad:
+#                 total_params += param.numel()
+#         for name,module in model.named_modules():
+#             if isinstance(module, nn.Conv2d) or isinstance(module, nn.ConvTranspose2d):
+#                 conv_count += 1
+#         print(f"Total number of trainable parameters: {total_params:,}")
+#         print(f"Total number of conv2d: {conv_count:,}")
+#         return total_params
+
+#     model = LapSrnMSV4_12(num_out_ch=3)
+#     # model2 = LPEB()
+#     # print(model)
+#     # count_parameters(model)
+#     # print(count_conv_layers(model))
+#     summaryv2(model, (1,3,16,16))
+#     # summaryv1(model,(3,16,16))
+#     # output_images = model(torch.randn((2, 3, 16, 16)))
+#     # for i, img in enumerate(output_images):
+#     #     print(f"Layer {i+1}".ljust(5),f": {img.shape}")
+
+'''
+inference
+'''
+
+if __name__ == '__main__':
+    import argparse
+    import cv2
+    import glob
+    import numpy as np
+    import os
+    import torch
+    from tqdm import tqdm
+    from basicsr.utils.img_util import img2tensor, tensor2img
+    import torchvision
+    import time
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test_path', type=str, default='datasets/data/inference')
+    parser.add_argument(
+        '--model_path',
+        type=str,
+        default=  # noqa: E251
+        'experiments/LapSRNV4.11_Celeb26k_BS64_L1_600k/models/net_g_100000.pth')
+    args = parser.parse_args()
+    if args.test_path.endswith('/'):  # solve when path ends with /
+        args.test_path = args.test_path[:-1]
+    test_root = os.path.join(args.test_path)
+    result_root = f'results/fbsr_result/{os.path.basename(args.test_path)}'
+    os.makedirs(result_root, exist_ok=True)
+
+    # set up the LapSrnMSV
+    net = LapSrnMSV4_11(num_out_ch=3,dim=64).to(device)
+    checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
+    net.load_state_dict(checkpoint['params'])
+    net.eval()
+
+    # scan all the jpg and png images
+    img_list = sorted(glob.glob(os.path.join(test_root, '*.[jp][pn]g')))
+    print(img_list)
+    pbar = tqdm(total=len(img_list), desc='')
+    for idx, img_path in enumerate(img_list):
+        img_name = os.path.basename(img_path).split('.')[0]
+        pbar.update(1)
+        pbar.set_description(f'{idx}: {img_name}')
+        # read image
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        img = img2tensor(img, bgr2rgb=True, float32=True).unsqueeze(0).to(device)
+        # inference
+        s = time.time()
+        with torch.no_grad():
+            HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
+            e = time.time()
+            print(f'inference time{e-s}')
+        # save image
+        output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
+        save_img_path = os.path.join(result_root, f'{img_name}_bfsr_sr8.png')
+        cv2.imwrite(save_img_path, output)
+        print(fb_sr8.shape)
+        a,b=fb_sr8.shape[2],fb_sr8.shape[3]
+        reshaped_tensor  = fb_sr8.view(11, 1, 128,128)
+        torchvision.utils.save_image(reshaped_tensor, f'{result_root}/fb_{img_name}_{a}_{b}.png', nrow=11)
+        from torchvision import transforms
+        import matplotlib.pyplot as plt
+        t = transforms.ToPILImage()
+        fig = plt.figure()
+        for i in range(11):
+            # 将numpy数组转换为图像对象。
+            face_img_tensor = fb_sr8[0,i,:,:]
+            _img = t(face_img_tensor)
+            fig.add_subplot(4, 3,i+1)
+            # vmin=0, vmax=255表示图像像素值的范围是0到255。
+            plt.imshow(_img, cmap='gray', vmin=0, vmax=255)
+            # plt.imshow(pmaps[:,:,i])
+        plt.savefig(f'{result_root}/fb_{img_name}_{a}_{b}_all.png')
