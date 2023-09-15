@@ -335,7 +335,7 @@ class FSRModel(BaseModel):
         # 存放fb图片
         if self.cri_mse:
             out_dict['fb_128'] = self.fb_128.detach().cpu()
-            out_dict['fb_64'] = self.fb_164.detach().cpu()
+            out_dict['fb_64'] = self.fb_64.detach().cpu()
             out_dict['fb_32'] = self.fb_32.detach().cpu()
         return out_dict
  
