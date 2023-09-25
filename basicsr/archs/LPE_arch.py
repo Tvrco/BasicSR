@@ -94,7 +94,7 @@ class BSHB(nn.Module):
 
 class LightPriorEstimationNetwork(nn.Module):
 
-    def __init__(self,dim):
+    def __init__(self,dim=128,fb_single_face=False):
         super(LightPriorEstimationNetwork, self).__init__()
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=5, stride=1, padding=2, bias=False),
@@ -111,9 +111,8 @@ class LightPriorEstimationNetwork(nn.Module):
             BSHB(dim, 3),
         )
         self.con_block = nn.Sequential(
-
-            nn.Conv2d(dim, 11, kernel_size=1, stride=1, padding=0, bias=False), 
-            nn.BatchNorm2d(11), 
+            nn.Conv2d(dim, 1 if fb_single_face else 11, kernel_size=1, stride=1, padding=0, bias=False), 
+            nn.BatchNorm2d(1 if fb_single_face else 11), 
             nn.ReLU(True),
             )
     def forward(self, x):

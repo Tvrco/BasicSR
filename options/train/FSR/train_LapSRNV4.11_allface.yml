@@ -1,5 +1,5 @@
 # general settings
-name: LapSRNV4.11_Celeb26k_BS16_L1MSE_600k
+name: LapSRNV4.11_allface_Celeb26k_BS16_L1MSE_600k
 model_type: FSRModel
 scale: 8
 num_gpu: 2  # set num_gpu: 0 for cpu mode
@@ -9,12 +9,12 @@ manual_seed: 0
 datasets:
   train:
     name: celeba
-    type: BFSRDataset
+    type: BFSRDataset_onefaceb
     dataroot_gt: ./datasets/data/train/celeb128
     dataroot_lq16: ./datasets/data/train/celeb16
     dataroot_lq32: ./datasets/data/train/celeb32
     dataroot_lq64: ./datasets/data/train/celeb64
-    faceb_gt: ./datasets/data/celeb_fb128_wight2
+    faceb_gt: ./datasets/data/face_boundary
     filename_tmpl: '{}'
     io_backend:
       type: disk
@@ -49,12 +49,12 @@ network_g:
   type: LapSrnMSV4_11
   num_out_ch: 3
   dim : 64
-  fb_single_face : False
+  fb_single_face : true
 # path
 path:
-  pretrain_network_g: ~
+  pretrain_network_g: './experiments/LapSRNV4.11_allface_Celeb26k_BS16_L1MSE_600k/models/net_g_400000.pth'
   strict_load_g: true
-  resume_state: ~
+  resume_state: './experiments/LapSRNV4.11_allface_Celeb26k_BS16_L1MSE_600k/training_states/400000.state'
 
 # training settings
 train:
@@ -114,5 +114,5 @@ dist_params:
 # cd BasicSR
 # CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.1_x8.yml > runlog/train_LapSRNV4.1_x8.log 2>&1 &
 
-# ps -ef | grep  train_LapSRNV4.11.yml | grep -v grep | awk '{print $2}' | xargs kill -9
+# ps -ef | grep  train_LapSRNV* | grep -v grep | awk '{print $2}' | xargs kill -9
 

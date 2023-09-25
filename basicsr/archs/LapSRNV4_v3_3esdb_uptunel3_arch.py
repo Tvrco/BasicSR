@@ -610,7 +610,7 @@ class LapSrnMSV4_9(nn.Module):
         # print(HR_8x.shape)
         return HR_2x,HR_4x,HR_8x
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class LapSrnMSV4_10(nn.Module):
     def __init__(self,num_out_ch=3):
         super(LapSrnMSV4_10, self).__init__()
@@ -671,14 +671,17 @@ class LapSrnMSV4_10(nn.Module):
         return HR_2x,HR_4x,HR_8x
 
 class LPEB(nn.Module):
-    def __init__(self,dim=128,num_out_ch=3):
+    def __init__(self,dim=128,num_out_ch=3,fb_single_face=False):
         super(LPEB, self).__init__()
         kwargs = {'padding': 1}
-        self.LPE = LightPriorEstimationNetwork(dim=dim)
+        self.LPE = LightPriorEstimationNetwork(dim=dim,fb_single_face=fb_single_face)
         self.esdb_1_1 = ESDB(in_channels=64, out_channels=64, conv=BSConvU, p=0.25)
         self.esdb_1_2 = ESDB(in_channels=64, out_channels=64, conv=BSConvU, p=0.25)
         self.convt_SRB1_2 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
-        self.convt_SRB1_3 = BSConvU(64+11, 64, kernel_size=3, **kwargs)
+        if fb_single_face:
+            self.convt_SRB1_3 = BSConvU(64+1, 64, kernel_size=3, **kwargs)
+        else:
+            self.convt_SRB1_3 = BSConvU(64+11, 64, kernel_size=3, **kwargs)
         self.convt_SRB1_4 = BSConvU(64, 3, kernel_size=3, **kwargs)
 
     def forward(self,x):
@@ -694,7 +697,7 @@ class LPEB(nn.Module):
 
 @ARCH_REGISTRY.register()
 class LapSrnMSV4_11(nn.Module):
-    def __init__(self,num_out_ch=3,dim=128):
+    def __init__(self,num_out_ch=3,dim=128,fb_single_face=False):
         super(LapSrnMSV4_11, self).__init__()
         kwargs = {'padding': 1}
         self.fea_conv = BSConvU(in_channels=3, out_channels=64, kernel_size=3, **kwargs)
@@ -704,7 +707,7 @@ class LapSrnMSV4_11(nn.Module):
         self.convt_SRB1 = BSConvU(64, 64, kernel_size=3, **kwargs)
         self.convt_DLB1 = _Conv_Block(num_out_ch=64)
         self.down_DLB1 = BSConvU(64, 3, kernel_size=3, **kwargs)
-        self.LPEB_1 = LPEB(dim=dim)
+        self.LPEB_1 = LPEB(dim=dim,fb_single_face=fb_single_face)
 
         self.convt_TRB1 = BSConvU(64, 64, kernel_size=3, **kwargs)
         self.up_TRB1 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=num_out_ch)
@@ -712,14 +715,14 @@ class LapSrnMSV4_11(nn.Module):
         self.convt_SRB2 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
         self.convt_DLB2 = _Conv_Block(num_out_ch=64)
         self.down_DLB2 = BSConvU(64, 3, kernel_size=3, **kwargs)
-        self.LPEB_2 = LPEB(dim=dim)
+        self.LPEB_2 = LPEB(dim=dim,fb_single_face=fb_single_face)
 
 
         self.convt_TRB2 = BSConvU(64, 64, kernel_size=3, **kwargs)
         self.convt_up_TRB2 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
         self.up_TRB2 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=num_out_ch)
 
-        self.LPEB_3 = LPEB(dim=dim)
+        self.LPEB_3 = LPEB(dim=dim,fb_single_face=fb_single_face)
         self.convt_SRB3 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
         self.convt_TRB3 = BSConvU(64, 64, kernel_size=3, **kwargs)
         self.convt_up_TRB3 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
@@ -756,7 +759,7 @@ class LapSrnMSV4_11(nn.Module):
         HR_8x,_,fb_sr8 = self.LPEB_3(HR_8x)
         return HR_2x,HR_4x,HR_8x,fb_sr2,fb_sr4,fb_sr8
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class LapSrnMSV4_12(nn.Module):
     def __init__(self,num_out_ch=3,dim=64):
         super(LapSrnMSV4_12, self).__init__()
@@ -862,9 +865,6 @@ class L1_Charbonnier_loss(nn.Module):
 #     # for i, img in enumerate(output_images):
 #     #     print(f"Layer {i+1}".ljust(5),f": {img.shape}")
 
-'''
-inference
-'''
 
 if __name__ == '__main__':
     import argparse
@@ -877,62 +877,99 @@ if __name__ == '__main__':
     from basicsr.utils.img_util import img2tensor, tensor2img
     import torchvision
     import time
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--test_path', type=str, default='datasets/data/inference')
-    parser.add_argument(
-        '--model_path',
-        type=str,
-        default=  # noqa: E251
-        'experiments/LapSRNV4.11_Celeb26k_BS64_L1_600k/models/net_g_100000.pth')
-    args = parser.parse_args()
-    if args.test_path.endswith('/'):  # solve when path ends with /
-        args.test_path = args.test_path[:-1]
-    test_root = os.path.join(args.test_path)
-    result_root = f'results/fbsr_result/{os.path.basename(args.test_path)}'
-    os.makedirs(result_root, exist_ok=True)
+    '''
+    inference
+    '''
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--test_path', type=str, default='datasets/data/inference')
+    # parser.add_argument(
+    #     '--model_path',
+    #     type=str,
+    #     default=  # noqa: E251
+    #     'experiments/LapSRNV4.11_Celeb26k_BS64_L1_600k/models/net_g_100000.pth')
+    # args = parser.parse_args()
+    # if args.test_path.endswith('/'):  # solve when path ends with /
+    #     args.test_path = args.test_path[:-1]
+    # test_root = os.path.join(args.test_path)
+    # result_root = f'results/fbsr_result/{os.path.basename(args.test_path)}'
+    # os.makedirs(result_root, exist_ok=True)
 
-    # set up the LapSrnMSV
-    net = LapSrnMSV4_11(num_out_ch=3,dim=64).to(device)
-    checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
-    net.load_state_dict(checkpoint['params'])
-    net.eval()
+    # # set up the LapSrnMSV
+    # net = LapSrnMSV4_11(num_out_ch=3,dim=64).to(device)
+    # checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
+    # net.load_state_dict(checkpoint['params'])
+    # net.eval()
 
-    # scan all the jpg and png images
-    img_list = sorted(glob.glob(os.path.join(test_root, '*.[jp][pn]g')))
-    print(img_list)
-    pbar = tqdm(total=len(img_list), desc='')
-    for idx, img_path in enumerate(img_list):
-        img_name = os.path.basename(img_path).split('.')[0]
-        pbar.update(1)
-        pbar.set_description(f'{idx}: {img_name}')
-        # read image
-        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        img = img2tensor(img, bgr2rgb=True, float32=True).unsqueeze(0).to(device)
-        # inference
-        s = time.time()
-        with torch.no_grad():
-            HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
-            e = time.time()
-            print(f'inference time{e-s}')
-        # save image
-        output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
-        save_img_path = os.path.join(result_root, f'{img_name}_bfsr_sr8.png')
-        cv2.imwrite(save_img_path, output)
-        print(fb_sr8.shape)
-        a,b=fb_sr8.shape[2],fb_sr8.shape[3]
-        reshaped_tensor  = fb_sr8.view(11, 1, 128,128)
-        torchvision.utils.save_image(reshaped_tensor, f'{result_root}/fb_{img_name}_{a}_{b}.png', nrow=11)
-        from torchvision import transforms
-        import matplotlib.pyplot as plt
-        t = transforms.ToPILImage()
-        fig = plt.figure()
-        for i in range(11):
-            # 将numpy数组转换为图像对象。
-            face_img_tensor = fb_sr8[0,i,:,:]
-            _img = t(face_img_tensor)
-            fig.add_subplot(4, 3,i+1)
-            # vmin=0, vmax=255表示图像像素值的范围是0到255。
-            plt.imshow(_img, cmap='gray', vmin=0, vmax=255)
-            # plt.imshow(pmaps[:,:,i])
-        plt.savefig(f'{result_root}/fb_{img_name}_{a}_{b}_all.png')
+    # # scan all the jpg and png images
+    # img_list = sorted(glob.glob(os.path.join(test_root, '*.[jp][pn]g')))
+    # print(img_list)
+    # pbar = tqdm(total=len(img_list), desc='')
+    # for idx, img_path in enumerate(img_list):
+    #     img_name = os.path.basename(img_path).split('.')[0]
+    #     pbar.update(1)
+    #     pbar.set_description(f'{idx}: {img_name}')
+    #     # read image
+    #     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    #     img = img2tensor(img, bgr2rgb=True, float32=True).unsqueeze(0).to(device)
+    #     # inference
+    #     s = time.time()
+    #     with torch.no_grad():
+    #         HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
+    #         e = time.time()
+    #         print(f'inference time{e-s}')
+    #     # save image
+    #     output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
+    #     save_img_path = os.path.join(result_root, f'{img_name}_bfsr_sr8.png')
+    #     cv2.imwrite(save_img_path, output)
+    #     print(fb_sr8.shape)
+    #     a,b=fb_sr8.shape[2],fb_sr8.shape[3]
+    #     reshaped_tensor  = fb_sr8.view(11, 1, 128,128)
+    #     torchvision.utils.save_image(reshaped_tensor, f'{result_root}/fb_{img_name}_{a}_{b}.png', nrow=11)
+    #     from torchvision import transforms
+    #     import matplotlib.pyplot as plt
+    #     t = transforms.ToPILImage()
+    #     fig = plt.figure()
+    #     for i in range(11):
+    #         # 将numpy数组转换为图像对象。
+    #         face_img_tensor = fb_sr8[0,i,:,:]
+    #         _img = t(face_img_tensor)
+    #         fig.add_subplot(4, 3,i+1)
+    #         # vmin=0, vmax=255表示图像像素值的范围是0到255。
+    #         plt.imshow(_img, cmap='gray', vmin=0, vmax=255)
+    #         # plt.imshow(pmaps[:,:,i])
+    #     plt.savefig(f'{result_root}/fb_{img_name}_{a}_{b}_all.png')
+
+    model_11 = LapSrnMSV4_11()
+    model_11_dict = model_11.state_dict()
+
+    model_10_dict = torch.load('experiments/LapSRNV4.10_Celeb26k_BS64_L1_600k_T4/models/net_g_380000.pth')
+    model_10_dict = model_10_dict['params']
+    # remove unnecessary 'module.'
+    from copy import deepcopy
+
+    for k, v in deepcopy(model_10_dict).items():
+        if k.startswith('module.'):
+            model_10_dict[k[7:]] = v
+            model_10_dict.pop(k)
+    print(f'update')
+    strict = False
+
+    crt_net_keys = set(model_11_dict.keys())
+    load_net_keys = set(model_10_dict.keys())
+    if crt_net_keys != load_net_keys:
+        print('Current net - loaded net:')
+        for v in sorted(list(crt_net_keys - load_net_keys)):
+            print(f'  {v}')
+        print('Loaded net - current net:')
+        for v in sorted(list(load_net_keys - crt_net_keys)):
+            print(f'  {v}')
+    #   check the size for the same keys
+    if not strict:
+        common_keys = crt_net_keys & load_net_keys
+        for k in common_keys:
+            if model_11_dict[k].size() != model_10_dict[k].size():
+                print(f'Size different, ignore [{k}]: crt_net: '
+                                f'{model_11_dict[k].shape}; load_net: {model_10_dict[k].shape}')
+                model_10_dict[k + '.ignore'] = load_net.pop(k)
+    model_11.load_state_dict(model_10_dict,strict=strict)

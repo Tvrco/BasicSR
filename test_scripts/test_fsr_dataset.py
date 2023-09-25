@@ -16,13 +16,13 @@ def main(mode='folder'):
     opt['phase'] = 'train'
 
     opt['name'] = 'celeba'
-    opt['type'] = 'BFSRDataset'
+    opt['type'] = 'BFSRDataset_onefaceb'
     if mode == 'folder':
         opt['dataroot_gt'] = './datasets/data/train/celeb128'
         opt['dataroot_lq16'] = './datasets/data/train/celeb16'
         opt['dataroot_lq32'] = './datasets/data/train/celeb32'
         opt['dataroot_lq64'] = './datasets/data/train/celeb64'
-        opt['faceb_gt'] = './datasets/data/celeb_fb128_wight2'
+        opt['faceb_gt'] = './datasets/data/face_boundary'
         opt['filename_tmpl'] = '{}'
         opt['io_backend'] = dict(type='disk')
 
@@ -51,35 +51,40 @@ def main(mode='folder'):
 
     dataset = build_dataset(opt)
     dataset.__getitem__(0)
-    # data_loader = build_dataloader(dataset, opt, num_gpu=0, dist=opt['dist'], sampler=None)
+    data_loader = build_dataloader(dataset, opt, num_gpu=0, dist=opt['dist'], sampler=None)
 
-    # nrow = int(math.sqrt(opt['batch_size_per_gpu']))
-    # padding = 2 if opt['phase'] == 'train' else 0
+    nrow = int(math.sqrt(opt['batch_size_per_gpu']))
+    padding = 2 if opt['phase'] == 'train' else 0
 
-    # print('start...')
-    # for i, data in enumerate(data_loader):
-    #     if i > 2:
-    #         break
-    #     print(f"批次{i}")
+    print('start...')
+    for i, data in enumerate(data_loader):
+        if i > 2:
+            break
+        print(f"批次{i}")
 
-    #     lq = data['lq']
-    #     lq32 = data['lq32']
-    #     lq64 = data['lq64']
-    #     gt = data['gt']
-    #     fb_32 = data['fb_32']
-    #     fb_64 = data['fb_64']
-    #     fb_128 = data['fb_128']
-    #     lq_path = data['lq_path']
-    #     lq32_path = data['lq32_path']
-    #     lq64_path = data['lq64_path']
-    #     gt_path = data['gt_path']
-    #     fb_path = data['fb_path']
-    #     # print(lq_path,'\n',lq32_path,'\n',lq64_path,'\n', gt_path, '\n')
-    #     # print(lq_path,'\n',lq32_path,'\n',lq64_path,'\n', gt_path, '\n', fb_path)
-    #     # torchvision.utils.save_image(lq, f'tmp/lq_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
-    #     # torchvision.utils.save_image(lq32, f'tmp/lq32_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
-    #     # torchvision.utils.save_image(lq64, f'tmp/lq64_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
-    #     # torchvision.utils.save_image(gt, f'tmp/gt_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
+        lq = data['lq']
+        lq32 = data['lq32']
+        lq64 = data['lq64']
+        gt = data['gt']
+        fb_32 = data['fb_32']
+        fb_64 = data['fb_64']
+        fb_128 = data['fb_128']
+        lq_path = data['lq_path']
+        lq32_path = data['lq32_path']
+        lq64_path = data['lq64_path']
+        gt_path = data['gt_path']
+        fb_path = data['fb_path']
+        print(lq_path,'\n',lq32_path,'\n',lq64_path,'\n', gt_path, '\n')
+        print(lq_path,'\n',lq32_path,'\n',lq64_path,'\n', gt_path, '\n', fb_path)
+        torchvision.utils.save_image(lq, f'tmp/lq_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
+        torchvision.utils.save_image(lq32, f'tmp/lq32_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
+        torchvision.utils.save_image(lq64, f'tmp/lq64_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
+        '''
+        一张图face
+        '''
+        torchvision.utils.save_image(fb_128, f'tmp/fb128_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
+
+        # torchvision.utils.save_image(gt, f'tmp/gt_{i:03d}.png', nrow=nrow, padding=padding, normalize=False)
     #     import matplotlib.pyplot as plt
     #     from torchvision import transforms
     #     t = transforms.ToPILImage()

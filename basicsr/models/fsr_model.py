@@ -2,6 +2,8 @@ from sympy import true
 import torch
 from collections import OrderedDict
 from os import path as osp
+import torchvision
+import os
 from tqdm import tqdm
 
 from basicsr.archs import build_network
@@ -22,8 +24,8 @@ class FSRModel(BaseModel):
         # define network
         self.net_g = build_network(opt['network_g'])
         self.net_g = self.model_to_device(self.net_g)
-        self.print_network(self.net_g)
-
+        # self.print_network(self.net_g)
+        print(f'model_to_device done')
         # load pretrained models
         load_path = self.opt['path'].get('pretrain_network_g', None)
         if load_path is not None:
@@ -31,6 +33,7 @@ class FSRModel(BaseModel):
             self.load_network(self.net_g, load_path, self.opt['path'].get('strict_load_g', True), param_key)
 
         if self.is_train:
+
             self.init_training_settings()
 
     def init_training_settings(self):
@@ -38,6 +41,10 @@ class FSRModel(BaseModel):
         train_opt = self.opt['train']
 
         self.ema_decay = train_opt.get('ema_decay', 0)
+        if self.opt['network_g'].get('fb_single_face'):
+            print(f'-------face landmark one MSE')
+            self.face_all = True
+
         if self.ema_decay > 0:
             logger = get_root_logger()
             logger.info(f'Use Exponential Moving Average with decay: {self.ema_decay}')
@@ -115,8 +122,10 @@ class FSRModel(BaseModel):
         # train_opt = self.opt['train']
         # print(train_opt)
         self.optimizer_g.zero_grad()
-        self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g(self.lq)
-
+        if self.cri_mse:
+            self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g(self.lq)
+        else:
+            self.srx2,self.srx4,self.output = self.net_g(self.lq)
         l_total = 0
         loss_dict = OrderedDict()
         # pixel loss
@@ -171,11 +180,17 @@ class FSRModel(BaseModel):
         if hasattr(self, 'net_g_ema'):
             self.net_g_ema.eval()
             with torch.no_grad():
-                self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g_ema(self.lq)
+                if self.cri_mse:
+                    self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g_ema(self.lq)
+                else:
+                    self.srx2,self.srx4,self.output = self.net_g_ema(self.lq)
         else:
             self.net_g.eval()
             with torch.no_grad():
-                self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g(self.lq)
+                if self.cri_mse:
+                    self.srx2,self.srx4,self.output,self.fbsr32,self.fbsr64,self.fbsr128 = self.net_g(self.lq)
+                else:
+                     self.srx2,self.srx4,self.output = self.net_g(self.lq)
             self.net_g.train()
 
     def test_selfensemble(self):
@@ -255,6 +270,9 @@ class FSRModel(BaseModel):
 
             visuals = self.get_current_visuals()
             sr_img = tensor2img([visuals['result']])
+
+            # print(f"sr_img_before:{visuals['result'].shape}\nsr_img_after:{sr_img.shape}")
+            # print(visuals['sr_fb_128'].shape)
             metric_data['img'] = sr_img
             if 'gt' in visuals:
                 gt_img = tensor2img([visuals['gt']])
@@ -268,22 +286,26 @@ class FSRModel(BaseModel):
 
             if save_img:
                 if self.opt['is_train']:
-                    save_img_path = osp.join(self.opt['path']['visualization'], img_name,
-                                             f'{img_name}_{current_iter}.png')
                     if self.cri_mse:
-                        import torchvision
-                        reshaped_tensor  = visuals['fb_128'].view(16*11, 1, 128,128)
-                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb128_{current_iter}.png')
-                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
+                        batch_size = int(visuals['sr_fb_128'].shape[0])
 
+                        if self.face_all:
+                            for size in [128, 64, 32]:
+                                key = f'sr_fb_{size}'
+                                save_img_path = osp.join(self.opt['path']['visualization'], img_name, f'fb_{size}_{img_name}_{current_iter}.png')
+                                facec_img = tensor2img([visuals[key]])
+                                imwrite(facec_img, save_img_path)
+                        else:
+                            for size in [128, 64, 32]:
+                                key = f'sr_fb_{size}'
+                                reshaped_tensor = visuals[key].view(batch_size * 11, 1, size, size)
+                                save_fb_path = osp.join(self.opt['path']['visualization'], img_name, f'{img_name}_fb{size}_{current_iter}.png')
+                                os.makedirs(osp.join(self.opt['path']['visualization'], img_name), exist_ok=True)
+                                torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
 
-                        reshaped_tensor  = visuals['fb_64'].view(16*11, 1, 64,64)
-                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb164_{current_iter}.png')
-                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
-                        
-                        reshaped_tensor  = visuals['fb_32'].view(16*11, 1, 32,32)
-                        save_fb_path = osp.join(self.opt['path']['visualization'],img_name,f'{img_name}_fb32_{current_iter}.png')
-                        torchvision.utils.save_image(reshaped_tensor, f'{save_fb_path}', nrow=11)
+                    else:
+                        # Handle other cases if needed
+                        pass
                 else:
                     if self.opt['val']['suffix']:
                         save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
@@ -291,6 +313,7 @@ class FSRModel(BaseModel):
                     else:
                         save_img_path = osp.join(self.opt['path']['visualization'], dataset_name,
                                                  f'{img_name}_{self.opt["name"]}.png')
+                save_img_path = osp.join(self.opt['path']['visualization'], img_name, f'{img_name}_{current_iter}.png')
                 imwrite(sr_img, save_img_path)
 
             if with_metrics:
@@ -334,9 +357,11 @@ class FSRModel(BaseModel):
             out_dict['gt'] = self.gt.detach().cpu()
         # 存放fb图片
         if self.cri_mse:
-            out_dict['fb_128'] = self.fb_128.detach().cpu()
-            out_dict['fb_64'] = self.fb_64.detach().cpu()
-            out_dict['fb_32'] = self.fb_32.detach().cpu()
+            out_dict['sr_fb_128'] = self.fbsr128.detach().cpu()
+            out_dict['sr_fb_64'] = self.fbsr64.detach().cpu()
+            out_dict['sr_fb_32'] = self.fbsr32.detach().cpu()
+            if out_dict['sr_fb_128'].shape[1] == 1:
+                self.face_all = True
         return out_dict
  
     def save(self, epoch, current_iter):
