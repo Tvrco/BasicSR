@@ -1,0 +1,14 @@
+addict
+future
+lmdb
+numpy>=1.17
+pyyaml
+requests
+scikit-image
+scipy
+tqdm
+yapf
+thop
+torchinfo
+sympy
+matplotlib
