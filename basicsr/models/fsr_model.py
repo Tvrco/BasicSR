@@ -41,13 +41,6 @@ class FSRModel(BaseModel):
         train_opt = self.opt['train']
 
         self.ema_decay = train_opt.get('ema_decay', 0)
-        logger = get_root_logger()
-        if self.opt['network_g'].get('fb_single_face'):
-            logger.info(f'-------face landmark one MSE by 1')
-            self.face_all = True #代表使用全脸1张图
-        else:
-            logger.info(f'-------face landmark one MSE by 11')
-            self.face_all = False #使用11张子图
 
         if self.ema_decay > 0:
             logger = get_root_logger()
@@ -87,6 +80,17 @@ class FSRModel(BaseModel):
 
         if self.cri_pix is None and self.cri_perceptual is None:
             raise ValueError('Both pixel and perceptual losses are None.')
+        
+        logger = get_root_logger()
+        if self.opt['network_g'].get('fb_single_face'):
+            logger.info(f'-------face landmark one MSE by 1')
+            self.face_all = True #代表使用全脸1张图
+        else:
+            if self.cri_mse:
+                logger.info(f'-------face landmark one MSE by 11')
+            else:
+                logger.info(f'-------No face landmark')
+            self.face_all = False #使用11张子图
 
         # set up optimizers and schedulers
         self.setup_optimizers()

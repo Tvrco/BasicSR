@@ -611,7 +611,7 @@ class LapSrnMSV4_9(nn.Module):
         # print(HR_8x.shape)
         return HR_2x,HR_4x,HR_8x
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class LapSrnMSV4_10(nn.Module):
     def __init__(self,num_out_ch=3):
         super(LapSrnMSV4_10, self).__init__()
@@ -878,7 +878,7 @@ class LapSrnMSV4_13(nn.Module):
         self.convt_TRB3 = BSConvU(64, 64, kernel_size=3, **kwargs)
         self.convt_up_TRB3 = BSConvU(num_out_ch, 64, kernel_size=3, **kwargs)
         self.up_TRB3 = PixelShuffleDirect(scale=2, num_feat=64, num_out_ch=3)
-        self.convt_DLB3 = _Conv_Block(num_out_ch=64)
+        self.convt_DLB3_v13 = _Conv_Block(num_out_ch=64)
         self.up_conv_TRB3 = BSConvU(3, 64, kernel_size=3, **kwargs)
 
     def forward(self, x):
@@ -904,11 +904,11 @@ class LapSrnMSV4_13(nn.Module):
         convt_SRB3 = self.convt_SRB3(HR_4x)+self.relu(esdb_1_2)
         convt_TRB3 = self.convt_up_TRB3(up_TRB2)
         convt_TRB3 = self.convt_TRB3(convt_TRB3)
-        convt_DLB3 = self.convt_DLB3(convt_SRB3)
+        convt_DLB3_v13 = self.convt_DLB3_v13(convt_SRB3)
         up_TRB3 = self.up_TRB3(self.relu(convt_TRB3))
         up_conv_TRB3 = self.up_conv_TRB3(up_TRB3)
 
-        HR_8x,_,fb_sr8 = self.LPEB_3(up_conv_TRB3+convt_DLB3)
+        HR_8x,_,fb_sr8 = self.LPEB_3(up_conv_TRB3+convt_DLB3_v13)
         return HR_2x,HR_4x,HR_8x,fb_sr2,fb_sr4,fb_sr8
 class L1_Charbonnier_loss(nn.Module):
     """L1 Charbonnierloss."""

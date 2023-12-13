@@ -282,7 +282,7 @@ class ESDB(nn.Module):
         return out_fused + input
 
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class BSRN(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
@@ -290,7 +290,7 @@ class BSRN(nn.Module):
         kwargs = {'padding': 1}
         if conv == 'BSConvS':
             kwargs = {'p': p}
-        print(conv)
+        # print(conv)
         if conv == 'DepthWiseConv':
             self.conv = DepthWiseConv
         elif conv == 'BSConvU':
@@ -344,8 +344,8 @@ class BSRN(nn.Module):
         out_B = self.GELU(out_B)
 
         out_lr = self.c2(out_B) + out_fea
-        print('-'*50)
-        print(out_lr.shape)
+        # print('-'*50)
+        # print(out_lr.shape)
         output = self.upsampler(out_lr)
 
         return output
