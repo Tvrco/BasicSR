@@ -81,66 +81,6 @@ class BSConvU(torch.nn.Module):
         return fea
 
 
-class BSConvS(torch.nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, bias=True,
-                 padding_mode="zeros", p=0.25, min_mid_channels=4, with_ln=False, bn_kwargs=None):
-        super().__init__()
-        self.with_ln = with_ln
-        # check arguments
-        assert 0.0 <= p <= 1.0
-        mid_channels = min(in_channels, max(min_mid_channels, math.ceil(p * in_channels)))
-        if bn_kwargs is None:
-            bn_kwargs = {}
-
-        # pointwise 1
-        self.pw1 = torch.nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=mid_channels,
-            kernel_size=(1, 1),
-            stride=1,
-            padding=0,
-            dilation=1,
-            groups=1,
-            bias=False,
-        )
-
-        # pointwise 2
-        self.add_module("pw2", torch.nn.Conv2d(
-            in_channels=mid_channels,
-            out_channels=out_channels,
-            kernel_size=(1, 1),
-            stride=1,
-            padding=0,
-            dilation=1,
-            groups=1,
-            bias=False,
-        ))
-
-        # depthwise
-        self.dw = torch.nn.Conv2d(
-            in_channels=out_channels,
-            out_channels=out_channels,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            dilation=dilation,
-            groups=out_channels,
-            bias=bias,
-            padding_mode=padding_mode,
-        )
-
-    def forward(self, x):
-        fea = self.pw1(x)
-        fea = self.pw2(fea)
-        fea = self.dw(fea)
-        return fea
-
-    def _reg_loss(self):
-        W = self[0].weight[:, :, 0, 0]
-        WWt = torch.mm(W, torch.transpose(W, 0, 1))
-        I = torch.eye(WWt.shape[0], device=WWt.device)
-        return torch.norm(WWt - I, p="fro")
-
 
 def stdv_channels(F):
     assert (F.dim() == 4)
@@ -148,12 +88,10 @@ def stdv_channels(F):
     F_variance = (F - F_mean).pow(2).sum(3, keepdim=True).sum(2, keepdim=True) / (F.size(2) * F.size(3))
     return F_variance.pow(0.5)
 
-
 def mean_channels(F):
     assert(F.dim() == 4)
     spatial_sum = F.sum(3, keepdim=True).sum(2, keepdim=True)
     return spatial_sum / (F.size(2) * F.size(3))
-
 
 class CCALayer(nn.Module):
     def __init__(self, channel, reduction=16):
@@ -173,7 +111,6 @@ class CCALayer(nn.Module):
         y = self.conv_du(y)
         return x * y
 
-
 class ChannelAttention(nn.Module):
     """Channel attention used in RCAN.
 
@@ -191,7 +128,6 @@ class ChannelAttention(nn.Module):
     def forward(self, x):
         y = self.attention(x)
         return x * y
-
 
 class ESA(nn.Module):
     def __init__(self, num_feat=50, conv=nn.Conv2d, p=0.25):
@@ -336,7 +272,7 @@ class BSRN(nn.Module):
         output = self.upsampler(out_lr)
 
         return output
-    
+
 @ARCH_REGISTRY.register()
 class BSFSRN(nn.Module):
     def __init__(self):
@@ -346,10 +282,10 @@ class BSFSRN(nn.Module):
 
         self.conv1 = BSRN(num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=2,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25)
-        
+
         self.conv2 = BSRN(num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=2,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25)
-        
+
         self.conv3 = BSRN(num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=2,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25)
         self.GELU = nn.GELU()
@@ -382,7 +318,7 @@ class BSFSRN(nn.Module):
         # out_R3 = self.convt_R3(out_I3)
         SR_8x = out_I3+out_S3
         return SR_2x, SR_4x, SR_8x
-    
+
 if __name__ == "__main__":
     # model = BSRN(upscale=2)
     model = BSFSRN() # 1,004,874 para
