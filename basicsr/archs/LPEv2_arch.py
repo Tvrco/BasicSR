@@ -6,10 +6,6 @@ from torchsummary import summary as summaryv1
 from basicsr.archs.BSRN_arch import ESDB,BSConvU
 
 class Residual(nn.Module):
-    """
-    from cydiachen's implementation
-    (https://github.com/cydiachen/FSRNET_pytorch)
-    """
     def __init__(self, ins, outs):
         super(Residual, self).__init__()
         hdim = int(outs/2)
@@ -111,8 +107,8 @@ class LightPriorEstimationNetwork(nn.Module):
             # BSHB(dim, 3),
         )
         self.con_block = nn.Sequential(
-            nn.Conv2d(dim, 1 if fb_single_face else 11, kernel_size=1, stride=1, padding=0, bias=False), 
-            nn.BatchNorm2d(1 if fb_single_face else 11), 
+            nn.Conv2d(dim, 1 if fb_single_face else 11, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(1 if fb_single_face else 11),
             nn.ReLU(True),
             )
     def forward(self, x):
@@ -131,12 +127,67 @@ def print_network(net):
 		num_params += param.numel()
 	print(net)
 	print('Total number of parameters: %d' % num_params)
+# if __name__ == "__main__":
+#     x = torch.randn((1, 64, 32, 32))
+#     model = LightPriorEstimationNetwork(64)
+#     b = model(x)
+#     # print(b.shape)
+#     # model = ResBlock(128)
+#     summaryv2(model, (1,64,32,32))
+#     # summaryv1(model,(3,32,32))
+#     # print_network(model)
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 if __name__ == "__main__":
-    x = torch.randn((1, 64, 32, 32))
+    # 实例化 Residual 和 BSHB 模块
     model = LightPriorEstimationNetwork(64)
-    b = model(x)
-    # print(b.shape)
-    # model = ResBlock(128)
+    residual_module = Residual(64, 64)
+    bshb_module = BSHB(64, 3)
+
+    # 计算 Residual 模块的参数数量
+    residual_params = count_parameters(residual_module)
+    print("Residual Module Parameters:", residual_params)
+
+    # 计算 BSHB 模块的参数数量
+    bshb_params = count_parameters(bshb_module)
+    print("BSHB Module Parameters:", bshb_params)
+
+    # 创建一个示例输入
+    example_input = torch.rand(1, 64, 32, 32).to('cpu')
+
+    # 获取 Residual 和 BSHB 模块的输出
+    residual_output = residual_module(example_input)
+    bshb_output = bshb_module(example_input)
+
+    # 打印输出特征维度
+    print("Residual Output Shape:", residual_output.shape)
+    print("BSHB Output Shape:", bshb_output.shape)
+    # 使用 torchinfo 打印模块摘要
+    print("\RB-BS Module Summary:")
+    summaryv2(residual_module, input_size=(1, 64, 32, 32))
+
+    print("\nBSHB Module Summary:")
+    summaryv2(bshb_module, input_size=(1, 64, 32, 32))
+    # 确保输入数据也在 GPU 上
+    import time
+    example_input = example_input.to('cuda')
+    start_time = time.time()
+    residual_output = residual_module(example_input)
+    end_time = time.time()
+    residual_runtime_ms = (end_time - start_time) * 1000  # 转换为毫秒
+    print("Residual Module Runtime:", residual_runtime_ms, "milliseconds")
+
+    # 测量 HourGlassBlock 模块的运行时间
+    start_time = time.time()
+    hourglass_output = bshb_module(example_input)
+    end_time = time.time()
+    hourglass_runtime_ms = (end_time - start_time) * 1000  # 转换为毫秒
+    print("bshb_module Module Runtime:", hourglass_runtime_ms, "milliseconds")
+
     summaryv2(model, (1,64,32,32))
-    # summaryv1(model,(3,32,32))
-    # print_network(model)
+    start_time = time.time()
+    hourglass_output = model(example_input)
+    end_time = time.time()
+    model_ms = (end_time - start_time) * 1000  # 转换为毫秒
+    print("module Module Runtime:", model_ms, "milliseconds")
