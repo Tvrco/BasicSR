@@ -24,7 +24,7 @@ def cont(model,x=(3, 16, 16)):
     model.to(device)
     inputs = torch.randn(1, 3, 16, 16).to(device)
     flops, params = profile(model, (inputs, ))
-    print(f'Network: {net_cls_str}, with flops(128 x 128): {flops/1e9:.2f} GMac, with active parameters: {params/1e3} K.')
+    print(f'Network: {net_cls_str}, with flops(128 x 128): {flops/1e6:.2f} MMac, with active parameters: {params/1e3} K.')
 
 
 class _Conv_Block(nn.Module):
