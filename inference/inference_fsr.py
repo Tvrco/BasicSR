@@ -7,15 +7,16 @@ import torch
 from torchinfo import summary
 # from torchstat import stat
 from ptflops import get_model_complexity_info
-from thop import profile 
+from thop import profile
 from tqdm import tqdm
 
-from basicsr.archs.LapSRNV4_v3_3esdb_uptunel3_arch import LapSrnMSV4_10
+from basicsr.archs.BSRFSR_arch import BSRFSR as model
+# from basicsr.archs.LapSRNV4_v3_3esdb_uptunel3_arch import LapSrnMSV4_10
 from basicsr.utils.img_util import img2tensor, tensor2img
 from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 
 if __name__ == '__main__':
-    model_name = '4_10'
+    model_name = 'BSRFSR(no_rep)_celeb26'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
@@ -24,7 +25,7 @@ if __name__ == '__main__':
         '--model_path',
         type=str,
         default=  # noqa: E251
-        'experiments/LapSRNV4.10_Celeb26k_BS64_L1_600k_V100/models/net_g_600000.pth')
+        'experiments\BSRFSR(no_rep)_Celeb26k_BS64_L1_300k_V100\models\\net_g_300000.pth')
     args = parser.parse_args()
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
 
-    net = LapSrnMSV4_10(num_out_ch=3).to(device)
+    net = model(num_out_ch=3).to(device)
     checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
     net.load_state_dict(checkpoint['params'])
     net.eval()
