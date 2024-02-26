@@ -250,7 +250,7 @@ class CADB(nn.Module):
         self.c4 = conv(self.remaining_channels, self.dc, kernel_size=3, **kwargs)
         self.act = nn.GELU()
 
-        self.c3_5 = conv(self.remaining_channels, self.dc, kernel_size=3, **kwargs)
+        self.c3_5 = nn.Conv2d(self.remaining_channels, self.dc, 1)
         self.c12_cat = nn.Conv2d(self.dc * 3, in_channels, 1)
 
         self.c5 = nn.Conv2d(self.dc * 4, in_channels, 1)
