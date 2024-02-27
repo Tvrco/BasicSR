@@ -15,8 +15,8 @@ except ImportError:
 def main():
     # Configurations
     # -------------------------------------------------------------------------
-    folder_gt = 'datasets/celeba/celeba_512_validation'
-    folder_restored = 'datasets/celeba/celeba_512_validation_lq'
+    folder_gt = 'D:\BasicSR\datasets\data\inference_test\HR'
+    folder_restored = 'D:\BasicSR\results\fsr_result\BSRFSR(no_rep)_celeb30'
     # crop_border = 4
     suffix = ''
     # -------------------------------------------------------------------------

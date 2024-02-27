@@ -39,7 +39,7 @@ datasets:
   val:
     name: DF2kVAL_blindsr
     # ==>
-    type: PairedImageDataset 
+    type: PairedImageDataset
     dataroot_gt: ./datasets/DF2K_val/GTmod4
     dataroot_lq: ./datasets/DF2K_val/LRblindsrx4
     io_backend:
@@ -59,7 +59,7 @@ network_d:
   num_in_ch: 3
   num_feat: 64
   skip_connection: True
-  
+
 # path
 path:
   pretrain_network_g: experiments/net_g_2000.pth
