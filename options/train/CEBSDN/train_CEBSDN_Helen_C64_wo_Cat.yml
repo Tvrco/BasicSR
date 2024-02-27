@@ -1,5 +1,5 @@
 # general settings
-name: CEBSDN_Helenx8_C64BS62_L1_600k
+name: CEBSDN_wo_Cat_Helenx8_C64BS64_L1_600k
 model_type: SRModel
 scale: 8
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -43,9 +43,9 @@ datasets:
 
 # network structures
 network_g:
-  type: CEBSDN
+  type: CEBSDN_wo_Cat
   num_in_ch: 3
-  num_feat: 62
+  num_feat: 64
   num_block: 8
   num_out_ch: 3
   upscale: 8
@@ -109,6 +109,6 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C64.yml > runlog/CEBSDN_Helenx8_C64_2.27.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C64_wo_Cat.yml> runlog/CEBSDN_wo_Cat_Helenx8_C64BS64_L1_600k_2.27.log 2>&1 &
 # ps -ef | grep basicsr/train.py | grep -v grep | awk '{print $2}' | xargs kill -9
 

@@ -1,10 +1,10 @@
-# CUDA_VISIBLE_DEVICES=0,1 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.11.yml > runlog/train_LapSRNV4.11_x8_600k.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.13.yml > runlog/v4.13_allface_600k_bs32_V100_1109.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.13_11face_by4.10.yml > runlog/v4.13base4.10_11face_400k_bs32_V100_1121.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.13_oneface_by4.10.yml > runlog/v4.13base4.10_oneface_400k_bs32_V100_1124.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.13_oneface.yml > runlog/v4.13_oneface_600k_bs32_V100_1114.log 2>&1 &
-CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_BSRFSR.yml > runlog/BSRFSR_nore_noLPE_by4.10_300k_bs64_V100_1217.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_BSRN_x4.yml > runlog/BSRN_x8_11.26.log 2>&1 &
+
+# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_BSRFSR-GAN_inference_byori.yml > runlog/BSRFSR_GAN-ori-11.13.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=3 nohup python -u basicsr/train.py -opt options/train/FSR/train_BSRFSR-GAN_inference_bygan.yml > runlog/BSRFSR_GAN-gan-11.13.log 2>&1 &
+CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C62.yml > runlog/CEBSDN_Helenx8_C62_2.27.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C58.yml > runlog/CEBSDN_Helenx8_C58_2.27.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C48.yml > runlog/CEBSDN_Helenx8_C48_2.27.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C64.yml > runlog/CEBSDN_Helenx8_C64_2.27.log 2>&1 &
 
 
 # CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/FSR/train_LapSRNV4.10_x8_FAN60k.yml > runlog/train_LapSRNV4.10_x8_FAN60k.log 2>&1 &
