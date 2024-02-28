@@ -127,5 +127,6 @@ if __name__ == "__main__":
 
 # python predata.py --scale LRbicx8 -w
 # python predata.py --scale all
-# python predata.py --hr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference\to8 --lr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference -s LRbicX8
+# python scripts/predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb16_downx8 -s LRbicX8
+# python scripts/predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb16_downx8 -s LRbicX8
 # python predata.py --hr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference\GTmod128 --lr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference --iteration True
