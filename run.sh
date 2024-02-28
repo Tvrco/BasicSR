@@ -24,4 +24,4 @@
 # CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C48_wo_Cat.yml> runlog/CEBSDN_wo_Cat_Helenx8_C48BS64_L1_100k_2.28.log 2>&1 &
 # CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/train_CEBSDN_Helen_C48_wo_CA.yml> runlog/CEBSDN_wo_CA_Helenx8_C48BS64_L1_100k_2.28.log 2>&1 &
 #2.28_11
-CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48.yml > runlog/CEBSDN_fine_CelebAx8_C48BS64_L1_600k_2.28.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48.yml > runlog/CEBSDN_CelebAx8_C48BS64_L1_600k_2.28.log 2>&1 &
