@@ -94,7 +94,7 @@ train:
 # validation settings
 val:
   val_freq: !!float 1e5
-  save_img: false
+  save_img: true
 
   metrics:
     psnr: # metric name, can be arbitrary
@@ -122,3 +122,5 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
+
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_LKDN_x8.yml > runlog/LKDN_CelebA_x8_C64B64_L1_1000k.log 2>&1 &
