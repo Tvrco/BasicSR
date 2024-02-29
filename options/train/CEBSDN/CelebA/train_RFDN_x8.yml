@@ -1,5 +1,5 @@
 # general settings
-name: CEBSDN_CelebAx8_C48BS64_L1_600k
+name: RFDN_CelebA_x8_C64B64_L1_1000k
 model_type: SRModel
 scale: 8
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -22,7 +22,7 @@ datasets:
 
     # data loader
     use_shuffle: true
-    num_worker_per_gpu: 8
+    num_worker_per_gpu: 6
     batch_size_per_gpu: 64
     dataset_enlarge_ratio: 10
     prefetch_mode: ~
@@ -37,17 +37,16 @@ datasets:
 
 # network structures
 network_g:
-  type: CEBSDN
-  num_in_ch: 3
-  num_feat: 48
-  num_block: 8
-  num_out_ch: 3
+  type: RFDN
+  in_nc: 3
+  nf: 50
+  num_modules: 4
+  out_nc: 3
   upscale: 8
-  conv: BSConvU
 
 # path
 path:
-  pretrain_network_g: experiments/CEBSDN_fine_CelebAx8_C48BS64_L1_600k/models/net_g_latest.pth
+  pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
 
@@ -55,18 +54,18 @@ path:
 train:
   optim_g:
     type: Adam
-    lr: !!float 5e-5
+    lr: !!float 1e-3
     weight_decay: 0
     betas: [0.9, 0.999]
 
   scheduler:
     type: CosineAnnealingRestartLR
-    periods: [600000]
+    periods: [1000000]
     restart_weights: [1]
     eta_min: !!float 1e-7
 
 
-  total_iter: 600000
+  total_iter: 1000000
   warmup_iter: -1  # no warm up
 
   # losses
@@ -77,8 +76,8 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e4
-  save_img: false
+  val_freq: !!float 1e5
+  save_img: true
 
   metrics:
     psnr: # metric name, can be arbitrary
@@ -92,7 +91,7 @@ val:
 # logging settings
 logger:
   print_freq: 1000
-  save_checkpoint_freq: !!float 2e4
+  save_checkpoint_freq: !!float 1e5
   use_tb_logger: false
   # wandb:
   #   project: ~
@@ -103,8 +102,4 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
-# CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48.yml > runlog/CEBSDN_CelebAx8_C48BS64_L1_600k_2.29.log 2>&1 &
-
-
-# ps -ef | grep basicsr/train.py | grep -v grep | awk '{print $2}' | xargs kill -9
-
+# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_RFDN_x8.yml > runlog/RFDN_CelebA_x8_C64B64_L1_1000k_2.29.log 2>&1 &
