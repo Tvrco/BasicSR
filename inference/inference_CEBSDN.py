@@ -1,4 +1,5 @@
 import argparse
+import time
 import cv2
 import glob
 import numpy as np
@@ -6,26 +7,25 @@ import os
 import torch
 from torchinfo import summary
 # from torchstat import stat
-# from ptflops import get_model_complexity_info
+from ptflops import get_model_complexity_info
 from thop import profile
 from tqdm import tqdm
-from lpips import LPIPS
-
-from basicsr.archs.BSRN_arch import BSRN as model
+import time
+from basicsr.archs.CEBSDN_arch import CEBSDN as model
 from basicsr.utils.img_util import img2tensor, tensor2img
 from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 
 if __name__ == '__main__':
-    model_name = 'BSRN'
+    model_name = 'CEBSDN'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
+    parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     parser.add_argument(
         '--model_path',
         type=str,
         default=  # noqa: E251
-        'experiments/BSRN_x4_C64B8_L1_600k/models/net_g_latest.pth')
+        'experiments/CEBSDN_Helenx8_C64BS64_L1_600k/models/net_g_100000.pth')
     args = parser.parse_args()
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
@@ -36,16 +36,13 @@ if __name__ == '__main__':
     psnr_y_list=[]
     ssimlist = []
     runtimelist = []
-    lpips_calculator = LPIPS(net='vgg')  # 使用默认的VGG模型，也可以根据需要选择其他模型
-    lpips_calculator.to(device)  # 将LPIPS计算器移动到与模型相同的设备
-    lpips_scores = []  # 用于存储LPIPS分数
     # result
-    result_root = f'results/fsr_result/{model_name}'
+    result_root = f'results/fsr_result/{model_name}_C64_100000'
     os.makedirs(result_root, exist_ok=True)
     print(f"result_root:{result_root}\nbasename:{os.path.basename(args.test_path)}")
     # set up the LapSrnMSV
-    start = torch.cuda.Event(enable_timing=True)
-    end = torch.cuda.Event(enable_timing=True)
+    # start = torch.cuda.Event(enable_timing=True)
+    # end = torch.cuda.Event(enable_timing=True)
 
     net = model(upscale=8).to(device)
     checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
@@ -58,10 +55,10 @@ if __name__ == '__main__':
     # print("FLOPs=", str(flops/1e9) + '{}'.format("G"))
     # print("params=", str(params/1e6) + '{}'.format("M"))
 
-    # macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
-    #                                         print_per_layer_stat=False, verbose=True)
-    # print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-    # print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+    macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
+                                            print_per_layer_stat=False, verbose=True)
+    print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+    print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
     # scan all the jpg and png images
     img_list = sorted(glob.glob(os.path.join(test_LR, '*.[jp][pn]g')))
@@ -81,24 +78,20 @@ if __name__ == '__main__':
         # inference
         with torch.no_grad():
             # HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
-            start.record()
+            start = time.time()
             output = net(img)
-            end.record()
+            end =time.time()
             torch.cuda.synchronize()
-            runtimelist.append(start.elapsed_time(end))  # milliseconds
-                                # 计算LPIPS分数
-            img_hr_tensor = img2tensor(img_hr).to(device)
-            lpips_score = lpips_calculator(output, img_hr_tensor)
-            lpips_scores.append(lpips_score.item())
+            runtimelist.append(end-start)  # milliseconds
         # save image
         # output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
         output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
         if output.ndim == 3:
             output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
         output = (output * 255.0).round().astype(np.uint8)
-        psnr_val = calculate_psnr(output,img_hr,4)
-        psnr_y_val = calculate_psnr(output,img_hr,4,test_y_channel=True)
-        ssim_val = calculate_ssim(output,img_hr,4)
+        psnr_val = calculate_psnr(output,img_hr,8)
+        psnr_y_val = calculate_psnr(output,img_hr,8,test_y_channel=True)
+        ssim_val = calculate_ssim(output,img_hr,8)
         psnrlist.append(psnr_val)
         psnr_y_list.append(psnr_y_val)
         ssimlist.append(ssim_val)
@@ -106,5 +99,3 @@ if __name__ == '__main__':
         cv2.imwrite(save_img_path, output)
     ave_runtime = round(sum(runtimelist) / len(runtimelist) / 1000.0 , 6)
     print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime}')
-    ave_lpips_score = np.mean(lpips_scores).round(4)
-    print(f'Ave LPIPS:{ave_lpips_score}')

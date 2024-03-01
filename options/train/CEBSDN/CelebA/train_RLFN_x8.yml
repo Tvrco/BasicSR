@@ -1,0 +1,104 @@
+# general settings
+name: RLFN_CelebA_x8_C64B64_L1_1000k
+model_type: SRModel
+scale: 8
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: CelebA-HQ
+    type: PairedImageDataset
+    dataroot_gt: ./datasets/data/train/celeb128
+    dataroot_lq: ./datasets/data/train/celeb16_downx8/LRbicX8
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    gt_size: 128
+    use_hflip: true
+    use_rot: true
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 64
+    dataset_enlarge_ratio: 10
+    prefetch_mode: ~
+
+
+  val:
+    name: CelebA-HQ_val
+    type: PairedImageDataset
+    dataroot_gt: ./datasets/data/test/celeb128
+    dataroot_lq: ./datasets/data/test/celeb16_downx8/LRbicX8
+    io_backend:
+      type: disk
+
+# network structures
+network_g:
+  type: RLFN
+  in_channels: 3
+  out_channels: 3
+  feature_channels: 48
+  mid_channels: 48
+  upscale_factor: 8
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+# training settings
+train:
+  optim_g:
+    type: Adam
+    lr: !!float 1e-3
+    weight_decay: 0
+    betas: [0.9, 0.999]
+
+  scheduler:
+    type: CosineAnnealingRestartLR
+    periods: [1000000]
+    restart_weights: [1]
+    eta_min: !!float 1e-7
+
+
+  total_iter: 1000000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: !!float 1e5
+  save_img: false
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: True
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: True
+# logging settings
+logger:
+  print_freq: 1000
+  save_checkpoint_freq: !!float 1e5
+  use_tb_logger: false
+  # wandb:
+  #   project: ~
+  #   resume_id: ~
+  #   entity: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_RLFN_x8.yml > runlog/RLFN_CelebA_x8_C64B64_L1_1000k_2.29.log 2>&1 &

@@ -1,0 +1,126 @@
+# general settings
+name: LKDN_CelebA_x8_C64B64_L1_1000k
+model_type: SRModel
+scale: 8
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: CelebA-HQ
+    type: PairedImageDataset
+    dataroot_gt: ./datasets/data/train/celeb128
+    dataroot_lq: ./datasets/data/train/celeb16_downx8/LRbicX8
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    gt_size: 128
+    use_hflip: true
+    use_rot: true
+
+    # data loader
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 64
+    dataset_enlarge_ratio: 10
+    prefetch_mode: cuda
+    pin_memory: true
+
+  val:
+    name: CelebA-HQ_val
+    type: PairedImageDataset
+    dataroot_gt: ./datasets/data/test/celeb128
+    dataroot_lq: ./datasets/data/test/celeb16_downx8/LRbicX8
+    io_backend:
+      type: disk
+
+  # val_3:
+  #   name: Urban100
+  #   type: PairedImageDataset
+  #   dataroot_gt: datasets/Urban100/GTmod4
+  #   dataroot_lq: datasets/Urban100/LRbicx4
+  #   io_backend:
+  #     type: disk
+
+# network structures
+network_g:
+  type: LKDN
+  num_in_ch: 3
+  num_out_ch: 3
+  num_feat: 56
+  num_atten: 56
+  num_block: 8
+  upscale: 8
+  num_in: 4
+  conv: BSConvU
+  upsampler: pixelshuffledirect
+
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  ema_decay: 0.999
+  optim_g:
+    # type: Adam
+    # lr: !!float 1e-3
+    # weight_decay: 0
+    # betas: [0.9, 0.99]
+
+    type: Adan
+    lr: !!float 5e-3
+    betas: [0.98, 0.92, 0.99]
+    weight_decay: 0
+    foreach: true
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [1000000]
+    gamma: 0.5
+
+  total_iter: 1000000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: !!float 1e5
+  save_img: true
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: true
+      better: higher  # the higher, the better. Default: higher
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+
+# logging settings
+logger:
+  print_freq: 1000
+  save_checkpoint_freq: !!float 1e5
+  use_tb_logger: false
+  # wandb:
+  #   project: ~
+  #   resume_id: ~
+  #   entity: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_LKDN_x8.yml > runlog/LKDN_CelebA_x8_C64B64_L1_1000k.log 2>&1 &

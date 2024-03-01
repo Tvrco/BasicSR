@@ -5,17 +5,22 @@ def main():
     radius = 9.5
     notation_size = 27
     '''0 - 10'''
-    # BSRN-S, FSRCNN
-    x = [156, 13]
-    y = [32.16, 30.71]
+    # BSRN
+    x = [327]
+    y = [24.46]
+    area = (10) * radius**2
+    ax.scatter(x, y, s=area, alpha=0.8, marker='.', c='#4D96FF', edgecolors='white', linewidths=2.0)
+    plt.annotate('BSRN', (327 + 10, 24.46 + 0.1), fontsize=notation_size)
+    # BSRFSR
+    x = [720.22]
+    y = [27.06]
     area = (30) * radius**2
     ax.scatter(x, y, s=area, alpha=0.8, marker='.', c='#4D96FF', edgecolors='white', linewidths=2.0)
-    plt.annotate('FSRCNN', (13 + 10, 30.71 + 0.1), fontsize=notation_size)
-    plt.annotate('BSRN-S(Ours)', (156 - 70, 32.16 + 0.15), fontsize=notation_size)
+    plt.annotate('BSRN-S(Ours)', (720.22 - 70, 27.06 + 0.15), fontsize=notation_size)
     '''10 - 25'''
-    # BSRN, RFDN
-    x = [357, 550]
-    y = [32.30, 32.24]
+    # FSR, MSFSR
+    x = [2153.93, 6343.53]
+    y = [24.97, 26.1]
     area = (75) * radius**2
     ax.scatter(x, y, s=area, alpha=1.0, marker='.', c='#FFD93D', edgecolors='white', linewidths=2.0)
     plt.annotate('BSRN(Ours)', (357 - 70, 32.35 + 0.10), fontsize=notation_size)
@@ -55,8 +60,8 @@ def main():
     y = [32.30]
     ax.scatter(x, y, alpha=1.0, marker='*', c='r', s=700)
 
-    plt.xlim(0, 800)
-    plt.ylim(29.75, 32.75)
+    plt.xlim(0, 22000)
+    plt.ylim(20.75, 30.75)
     plt.xlabel('Parameters (K)', fontsize=35)
     plt.ylabel('PSNR (dB)', fontsize=35)
     plt.title('PSNR vs. Parameters vs. Multi-Adds', fontsize=35)
@@ -85,7 +90,7 @@ def main():
     for size in ax.get_yticklabels():  # Set fontsize for y-axis
         size.set_fontsize('30')
 
-    ax.grid(b=True, linestyle='-.', linewidth=0.5)
+    ax.grid( linestyle='-.', linewidth=0.5)
     plt.show()
 
     fig.savefig('model_complexity_cmp_bsrn.png')

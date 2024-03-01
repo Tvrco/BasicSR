@@ -12,3 +12,4 @@ thop
 torchinfo
 sympy
 matplotlib
+torchsummary

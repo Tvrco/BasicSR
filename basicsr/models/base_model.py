@@ -8,7 +8,7 @@ from torch.nn.parallel import DataParallel, DistributedDataParallel
 from basicsr.models import lr_scheduler as lr_scheduler
 from basicsr.utils import get_root_logger
 from basicsr.utils.dist_util import master_only
-
+from basicsr.optimizers.adan import Adan
 
 class BaseModel():
     """Base model."""
@@ -103,6 +103,8 @@ class BaseModel():
     def get_optimizer(self, optim_type, params, lr, **kwargs):
         if optim_type == 'Adam':
             optimizer = torch.optim.Adam(params, lr, **kwargs)
+        elif optim_type == 'Adan':
+            optimizer = Adan(params, lr, **kwargs)
         elif optim_type == 'AdamW':
             optimizer = torch.optim.AdamW(params, lr, **kwargs)
         elif optim_type == 'Adamax':
