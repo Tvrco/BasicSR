@@ -1,11 +1,13 @@
 import torch
 from torch import nn as nn
-
+from thop import profile
+from torchinfo import summary as summaryv2
+from torchsummary import summary as summaryv1
 from basicsr.archs.lkdn_blocks import LKDB, BSConvU, BSConvU_idt, BSConvU_rep, UpsampleOneStep, Upsampler_rep
 from basicsr.utils.registry import ARCH_REGISTRY
 
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class LKDN(nn.Module):
 
     def __init__(self,
@@ -72,3 +74,14 @@ class LKDN(nn.Module):
         output = self.upsampler(out_lr)
 
         return output
+if __name__ == "__main__":
+    model = LKDN(upscale=8)
+    # summaryv2(model, (1,3,16,16))
+    # summaryv1(model,(3,128,128))
+    # print(model)
+
+    input_data = torch.randn((1, 3, 16, 16))
+    output_data = model(input_data)
+    print(output_data.shape)
+    macs, params = profile(model, inputs=(input_data,))
+    print(f"FLOPs: {macs / 1e6}M, FLOPs: {macs / 1e9}G,Params: {params / 1e3}K")

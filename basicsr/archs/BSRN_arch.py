@@ -351,12 +351,12 @@ class BSRN(nn.Module):
         return output
 
 if __name__ == "__main__":
-    model = BSRN(upscale=4)
-    summaryv2(model, (1,3,16,16))
+    model = BSRN(upscale=8)
+    # summaryv2(model, (1,3,16,16))
     # summaryv1(model,(3,128,128))
     # print(model)
-    # input_data = torch.randn((1, 3, 64, 64))
+    input_data = torch.randn((1, 3, 16, 16))
     # output_data = model(input_data)
     # print(output_data.shape)
-    # macs, params = profile(model, inputs=(input_data,))
-    # print(f"FLOPs: {macs / 1e6}M, Params: {params / 1e6}M")
+    macs, params = profile(model, inputs=(input_data,))
+    print(f"FLOPs: {macs / 1e6}M, Params: {params / 1e6}M")
