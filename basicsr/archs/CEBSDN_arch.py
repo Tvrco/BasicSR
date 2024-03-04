@@ -222,7 +222,7 @@ class ESA(nn.Module):
 
         return input * m
 
-        
+
 class CADB(nn.Module):
     def __init__(self, in_channels, out_channels, conv=nn.Conv2d, p=0.25):
         super(CADB, self).__init__()
@@ -262,7 +262,7 @@ class CADB(nn.Module):
         r_c2 = (self.c2_r(r_c1))
         r_c2 = self.act(r_c2 + r_c1)
         r_c3_5 = self.act(self.c3_5(r_c2))
-        
+
 
         cat_1 = torch.cat([distilled_c1, distilled_c2,r_c3_5], dim=1) #32 ,32 ,64
         cat_1_c12_cat = (self.c12_cat(cat_1))
@@ -357,7 +357,7 @@ class CEBSDN(nn.Module):
         return output
 
 if __name__ == "__main__":
-    model = CEBSDN(upscale=8)
+    model = CEBSDN(upscale=8,num_feat=48)
     # summaryv2(model, (1,3,16,16))
     # summaryv1(model,(3,128,128))
     # print(model)

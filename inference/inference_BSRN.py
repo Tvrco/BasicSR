@@ -19,13 +19,14 @@ if __name__ == '__main__':
     model_name = 'BSRN'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
+    parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
+    # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     parser.add_argument(
         '--model_path',
         type=str,
         default=  # noqa: E251
-        'experiments/BSRN_x4_C64B8_L1_600k/models/net_g_latest.pth')
+        'experiments/BSRN_Helen_x8_C64B8_L1_1000k/models/net_g_latest.pth')
     args = parser.parse_args()
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     lpips_calculator.to(device)  # 将LPIPS计算器移动到与模型相同的设备
     lpips_scores = []  # 用于存储LPIPS分数
     # result
-    result_root = f'results/fsr_result/{model_name}'
+    result_root = f'results/fsr_result/{model_name}_1000K'
     os.makedirs(result_root, exist_ok=True)
     print(f"result_root:{result_root}\nbasename:{os.path.basename(args.test_path)}")
     # set up the LapSrnMSV

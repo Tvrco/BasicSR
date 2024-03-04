@@ -1,8 +1,8 @@
 # general settings
-name: CEBSDN_Helenx8_C62BS64_L1_100k
+name: CEBSDN_wo_ECA_Helenx8_C48BS64_infer_100k
 model_type: SRModel
 scale: 8
-num_gpu: 1  # set num_gpu: 0 for cpu mode
+num_gpu: 1 # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
 # dataset and data loader settings
@@ -12,8 +12,8 @@ datasets:
     type: PairedImageDataset
     # dataroot_gt: ./datasets/data/train/celeb128
     # dataroot_lq: ./datasets/data/train/celeb16
-    dataroot_gt: ./datasets/data/Helen/Helen_train/HR
-    dataroot_lq: ./datasets/data/Helen/Helen_train/LR
+    dataroot_gt: ./datasets/data/Helen/Helen_test/HR
+    dataroot_lq: ./datasets/data/Helen/Helen_test/LR
     filename_tmpl: '{}'
     io_backend:
       type: disk
@@ -26,9 +26,9 @@ datasets:
 
     # data loader
     use_shuffle: true
-    num_worker_per_gpu: 8
-    batch_size_per_gpu: 64
-    dataset_enlarge_ratio: 10
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 1
+    dataset_enlarge_ratio: 100
     prefetch_mode: ~
 
   val:
@@ -43,9 +43,9 @@ datasets:
 
 # network structures
 network_g:
-  type: CEBSDN
+  type: CEBSDN_wo_CA
   num_in_ch: 3
-  num_feat: 62
+  num_feat: 48
   num_block: 8
   num_out_ch: 3
   upscale: 8
@@ -53,7 +53,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: ~
+  pretrain_network_g: experiments/CEBSDN_wo_CA_Helenx8_C48BS64_L1_100k/models/net_g_14000.pth
   strict_load_g: true
   resume_state: ~
 
@@ -97,8 +97,8 @@ val:
       test_y_channel: True
 # logging settings
 logger:
-  print_freq: 1000
-  save_checkpoint_freq: !!float 2e3
+  print_freq: 200
+  save_checkpoint_freq: !!float 5e3
   use_tb_logger: false
   # wandb:
   #   project: ~
@@ -109,6 +109,9 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/Helen/train_CEBSDN_Helen_C62.yml > runlog/CEBSDN_Helenx8_C62BS64_L1_100k_3.3.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/Helen_infer/train_CEBSDN_Helen_C48_wo_ECA_infer.yml > runlog/CEBSDN_wo_ECA_Helenx8_C48BS64_infer_100k_3.3.log 2>&1 &
+
+
+
 # ps -ef | grep basicsr/train.py | grep -v grep | awk '{print $2}' | xargs kill -9
 
