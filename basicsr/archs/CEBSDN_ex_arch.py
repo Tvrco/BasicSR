@@ -237,7 +237,7 @@ class CADB_wo_CA(nn.Module):
         r_c2 = (self.c2_r(r_c1))
         r_c2 = self.act(r_c2 + r_c1)
         r_c3_5 = self.act(self.c3_5(r_c2))
-        
+
 
         cat_1 = torch.cat([distilled_c1, distilled_c2,r_c3_5], dim=1) #32 ,32 ,64
         cat_1_c12_cat = (self.c12_cat(cat_1))
@@ -308,7 +308,7 @@ class CADB_wo_Cat(nn.Module):
 
         return out_fused + input
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class CEBSDN_wo_CA(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
@@ -374,7 +374,7 @@ class CEBSDN_wo_CA(nn.Module):
 
         return output
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class CEBSDN_wo_Cat(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
@@ -440,17 +440,25 @@ class CEBSDN_wo_Cat(nn.Module):
 
         return output
 if __name__ == "__main__":
-    # model = CEBSDN_wo_CA(upscale=8)
+    model = CEBSDN_wo_CA(upscale=8)
     # FLOPs: 117.866496M, FLOPs: 0.117866496G,Params: 464.64K
-    model = CEBSDN_wo_Cat(upscale=8)
+    # model = CEBSDN_wo_Cat(upscale=8)
     # FLOPs: 111.198208M, FLOPs: 0.111198208G,Params: 450.112K
 
     # summaryv2(model, (1,3,16,16))
     # summaryv1(model,(3,128,128))
     # print(model)
 
-    input_data = torch.randn((1, 3, 16, 16))
-    output_data = model(input_data)
-    print(output_data.shape)
-    macs, params = profile(model, inputs=(input_data,))
-    print(f"FLOPs: {macs / 1e6}M, FLOPs: {macs / 1e9}G,Params: {params / 1e3}K")
+    inp = torch.randn((1, 3, 16, 16))
+    model(inp)
+    flops, params = profile(model, inputs=(inp,) )
+    print(f'Network:  with flops(128 x 128): {flops/1e9:.2f} GMac, with active parameters: {params/1e3} K.')
+    from thop import clever_format
+    macs, params = clever_format([flops, params], "%.3f")
+    print(macs,params)
+
+    # input_data = torch.randn((1, 3, 16, 16))
+    # output_data = model(input_data)
+    # print(output_data.shape)
+    # macs, params = profile(model, inputs=(input_data,))
+    # print(f"FLOPs: {macs / 1e6}M, FLOPs: {macs / 1e9}G,Params: {params / 1e3}K")
