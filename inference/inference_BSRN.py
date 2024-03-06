@@ -10,7 +10,7 @@ from torchinfo import summary
 from thop import profile
 from tqdm import tqdm
 from lpips import LPIPS
-
+import time
 from basicsr.archs.BSRN_arch import BSRN as model
 from basicsr.utils.img_util import img2tensor, tensor2img
 from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
@@ -18,6 +18,7 @@ from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 if __name__ == '__main__':
     model_name = 'BSRN'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = 'cpu'
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
@@ -49,15 +50,16 @@ if __name__ == '__main__':
     end = torch.cuda.Event(enable_timing=True)
 
     net = model(upscale=8).to(device)
+    # net = model(upscale=8).to(device)
     checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
     net.load_state_dict(checkpoint['params'])
     net.eval()
     # summary(net,(1,3,16,16))
     # stat(net,(1,3,16,16))
-    # inp = torch.randn(1, 3, 16, 16)
-    # flops, params = profile(net,input(inp,) )
-    # print("FLOPs=", str(flops/1e9) + '{}'.format("G"))
-    # print("params=", str(params/1e6) + '{}'.format("M"))
+    inp = torch.randn(1, 3, 16, 16).to(device)
+    flops, params = profile(net,inputs=(inp,) )
+    print("FLOPs=", str(flops/1e9) + '{}'.format("G"))
+    print("params=", str(params/1e6) + '{}'.format("M"))
 
     # macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
     #                                         print_per_layer_stat=False, verbose=True)
@@ -83,9 +85,12 @@ if __name__ == '__main__':
         with torch.no_grad():
             # HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
             start.record()
+            # start = time.time()
             output = net(img)
+            # end = time.time()
             end.record()
             torch.cuda.synchronize()
+            # runtimelist.append(end-start)  # milliseconds
             runtimelist.append(start.elapsed_time(end))  # milliseconds
                                 # 计算LPIPS分数
             img_hr_tensor = img2tensor(img_hr).to(device)
@@ -105,7 +110,8 @@ if __name__ == '__main__':
         ssimlist.append(ssim_val)
         save_img_path = os.path.join(result_root, f'{img_name}_fsr_sr8.png')
         cv2.imwrite(save_img_path, output)
-    ave_runtime = round(sum(runtimelist) / len(runtimelist) / 1000.0 , 6)
-    print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime}')
+    ave_runtime = sum(runtimelist) / len(runtimelist)
+    Fps_time = 1000/ ave_runtime
+    print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime} Fps_time:{Fps_time}')
     ave_lpips_score = np.mean(lpips_scores).round(4)
     print(f'Ave LPIPS:{ave_lpips_score}')

@@ -4,6 +4,7 @@ import cv2
 import glob
 import numpy as np
 import os
+import sys
 import torch
 from torchinfo import summary
 # from torchstat import stat
@@ -11,15 +12,37 @@ from ptflops import get_model_complexity_info
 from thop import profile
 from tqdm import tqdm
 import time
+import logging
 from basicsr.archs.CEBSDN_arch import CEBSDN as model
 from basicsr.archs.CEBSDN_ex_arch import CEBSDN_wo_CA,CEBSDN_wo_Cat
 from basicsr.utils.img_util import img2tensor, tensor2img
 from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
+from contextlib import contextmanager
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+def pretty_print_performance(time_dic):
+    header = f"{'Model Name':<50} {'Mean Time (s)':<15} {'FPS':<10} {'Parameters':<20} {'macs':<20}"
+    divider = '-' * len(header)
+    print(header)
+    print(divider)
+    for model_name, timings in time_dic.items():
+        mean_time = timings['mean_time']
+        fps = timings['FPS']
+        parameters = timings['parameters']
+        macs = timings['macs']
+        print(f"{model_name:<50} {mean_time:<15.4f} {fps:<10.2f} {parameters:<20} {macs:<20}")
 
 if __name__ == '__main__':
     model_name = 'CEBSDN'
     device = 'cpu'
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
@@ -32,7 +55,7 @@ if __name__ == '__main__':
         '--model_num',
         type=str,
         default=  # noqa: E251
-        'net_g_5000.pth')
+        'net_g_10000.pth')
     args = parser.parse_args()
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
@@ -44,6 +67,7 @@ if __name__ == '__main__':
     psnr_y_list=[]
     ssimlist = []
     runtimelist = []
+    time_dic = {}
     for model_name_path in model_path_list:
         model_path = os.path.join(args.model_path_list,model_name_path,"models",args.model_num)
         if not os.path.exists(model_path):
@@ -67,7 +91,7 @@ if __name__ == '__main__':
             continue
 
         # result
-        result_root = f'results/fsr_result/{args.model_num}_infer/{model_name_path}'
+        result_root = f'results/fsr_result/{model_name}_{args.model_num}_infer/{model_name_path}'
         os.makedirs(result_root, exist_ok=True)
         print(f"result_root:{result_root}\nbasename:{os.path.basename(args.test_path)}")
         # set up the LapSrnMSV
@@ -80,54 +104,60 @@ if __name__ == '__main__':
         # summary(net,(1,3,16,16))
         # stat(net,(1,3,16,16))
 
-        inp = torch.randn(1, 3, 16, 16)
-        flops, params = profile(net,inputs=(inp,) )
-        print(f'Network: {model_name_path}, with flops(128 x 128): {flops/1e9:.2f} GMac, with active parameters: {params/1e3} K.')
-        from thop import clever_format
-        macs, params = clever_format([flops, params], "%.3f")
-        print(macs,params)
+        inp = torch.randn(1, 3, 16, 16).to(device)
+        with suppress_stdout():
+            flops, params = profile(net,inputs=(inp,) )
+            # print(f'Network: {model_name_path}, with flops(128 x 128): {flops/1e9:.2f} GMac, with active parameters: {params/1e3} K.')
+            from thop import clever_format
+            macs, params = clever_format([flops, params], "%.4f")
+        # Restore the original logging level
+        # print(macs,params)
 
     # macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
     #                                         print_per_layer_stat=False, verbose=True)
     # print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
     # print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
-    # # scan all the jpg and png images
-    # img_list = sorted(glob.glob(os.path.join(test_LR, '*.[jp][pn]g')))
-    # pbar = tqdm(total=len(img_list), desc='')
-    # for idx, img_path in enumerate(img_list):
-    #     img_name_ex = os.path.basename(img_path)
-    #     img_name = img_name_ex.split('.')[0]
-    #     img_hr = cv2.imread(os.path.join(test_HR,img_name_ex), cv2.IMREAD_COLOR)
+        # scan all the jpg and png images
+        img_list = sorted(glob.glob(os.path.join(test_LR, '*.[jp][pn]g')))
+        # pbar = tqdm(total=len(img_list), desc='')
+        for idx, img_path in enumerate(img_list):
+            img_name_ex = os.path.basename(img_path)
+            img_name = img_name_ex.split('.')[0]
+            img_hr = cv2.imread(os.path.join(test_HR,img_name_ex), cv2.IMREAD_COLOR)
 
-    #     pbar.update(1)
-    #     pbar.set_description(f'{idx}: {img_name}')
+            # pbar.update(1)
+            # pbar.set_description(f'{idx}: {img_name}')
 
-    #     # read image
-    #     img = cv2.imread(img_path, cv2.IMREAD_COLOR).astype(np.float32) / 255.
-    #     img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
-    #     img = img.unsqueeze(0).to(device)
-    #     # inference
-    #     with torch.no_grad():
-    #         # HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
-    #         start = time.time()
-    #         output = net(img)
-    #         end =time.time()
-    #         torch.cuda.synchronize()
-    #         runtimelist.append(end-start)  # milliseconds
-    #     # save image
-    #     # output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
-    #     output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
-    #     if output.ndim == 3:
-    #         output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
-    #     output = (output * 255.0).round().astype(np.uint8)
-    #     psnr_val = calculate_psnr(output,img_hr,8)
-    #     psnr_y_val = calculate_psnr(output,img_hr,8,test_y_channel=True)
-    #     ssim_val = calculate_ssim(output,img_hr,8)
-    #     psnrlist.append(psnr_val)
-    #     psnr_y_list.append(psnr_y_val)
-    #     ssimlist.append(ssim_val)
-    #     save_img_path = os.path.join(result_root, f'{img_name}_fsr_sr8.png')
-    #     cv2.imwrite(save_img_path, output)
-    # ave_runtime = round(sum(runtimelist) / len(runtimelist) / 1000.0 , 6)
-    # print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime}')
+            # read image
+            img = cv2.imread(img_path, cv2.IMREAD_COLOR).astype(np.float32) / 255.
+            img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
+            img = img.unsqueeze(0).to(device)
+            # inference
+            with torch.no_grad():
+                # HR_2x,HR_4x,output,fb_sr2,fb_sr4,fb_sr8 = net(img)
+                start = time.time()
+                output = net(img)
+                end =time.time()
+                torch.cuda.synchronize()
+                runtimelist.append(end-start)  # milliseconds
+            # save image
+            # output = tensor2img(output, rgb2bgr=True, out_type=np.uint8, min_max=(0, 255))
+            output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
+            if output.ndim == 3:
+                output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
+            output = (output * 255.0).round().astype(np.uint8)
+            psnr_val = calculate_psnr(output,img_hr,8)
+            psnr_y_val = calculate_psnr(output,img_hr,8,test_y_channel=True)
+            ssim_val = calculate_ssim(output,img_hr,8)
+            psnrlist.append(psnr_val)
+            psnr_y_list.append(psnr_y_val)
+            ssimlist.append(ssim_val)
+            save_img_path = os.path.join(result_root, f'{img_name}_fsr_sr8.png')
+            cv2.imwrite(save_img_path, output)
+        mean_time = sum(runtimelist) / len(runtimelist)
+        Fps_tims = 1 / mean_time
+        time_dic[model_name_path] = {'mean_time': mean_time, 'FPS': Fps_tims, 'parameters': params, 'macs': macs}
+        print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{mean_time} FPS:{Fps_tims}')
+        print('-'*50)
+    pretty_print_performance(time_dic)
