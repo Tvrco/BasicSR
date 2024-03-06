@@ -6,7 +6,7 @@ import os
 import torch
 from torchinfo import summary
 # from torchstat import stat
-from ptflops import get_model_complexity_info
+# from ptflops import get_model_complexity_info
 from thop import profile
 from tqdm import tqdm
 
@@ -17,7 +17,8 @@ from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 
 if __name__ == '__main__':
     model_name = 'BSRFSR(no_rep)_celeb26'
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device ='cpu'
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
@@ -50,15 +51,15 @@ if __name__ == '__main__':
     net.eval()
     # summary(net,(1,3,16,16))
     # stat(net,(1,3,16,16))
-    # inp = torch.randn(1, 3, 16, 16)
-    # flops, params = profile(net,input(inp,) )
-    # print("FLOPs=", str(flops/1e9) + '{}'.format("G"))
-    # print("params=", str(params/1e6) + '{}'.format("M"))
+    inp = torch.randn(1, 3, 16, 16).to(device)
+    flops, params = profile(net,inputs=(inp,) )
+    print("FLOPs=", str(flops/1e9) + '{}'.format("G"))
+    print("params=", str(params/1e6) + '{}'.format("M"))
 
-    macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
-                                            print_per_layer_stat=False, verbose=True)
-    print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-    print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+    # macs, params = get_model_complexity_info(net, (3, 16, 16), as_strings=True,
+    #                                         print_per_layer_stat=False, verbose=True)
+    # print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+    # print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
     # scan all the jpg and png images
     img_list = sorted(glob.glob(os.path.join(test_LR, '*.[jp][pn]g')))
@@ -97,5 +98,6 @@ if __name__ == '__main__':
         ssimlist.append(ssim_val)
         save_img_path = os.path.join(result_root, f'{img_name}_fsr_sr8.png')
         cv2.imwrite(save_img_path, output)
-    ave_runtime = round(sum(runtimelist) / len(runtimelist) / 1000.0 , 6)
-    print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime}')
+    ave_runtime = sum(runtimelist) / len(runtimelist)
+    fps_times = 1000/ave_runtime
+    print(f'Ave psnr:{np.mean(psnrlist).round(4)} Ave ypsnr:{np.mean(psnr_y_list).round(4)}\nAve ssim:{np.mean(ssimlist).round(4)} ave_runtime:{ave_runtime} fps_times:{fps_times}')
