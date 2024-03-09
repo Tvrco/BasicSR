@@ -17,8 +17,8 @@ from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 
 if __name__ == '__main__':
     model_name = 'BSRFSR(no_rep)_celeb26'
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    device ='cpu'
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device ='cpu'
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')

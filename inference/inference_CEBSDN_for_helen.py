@@ -41,7 +41,7 @@ def pretty_print_performance(time_dic):
 
 if __name__ == '__main__':
     model_name = 'CEBSDN'
-    device = 'cpu'
+    # device = 'cpu'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
     parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
