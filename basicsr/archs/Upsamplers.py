@@ -11,6 +11,8 @@ import torch.nn.functional as F
 import math
 
 
+
+
 class PA(nn.Module):
     '''PA is pixel attention'''
 
@@ -63,7 +65,7 @@ class PA_UP_Dropout(nn.Module):
             self.upconv2 = conv(unf, unf, 3, 1, 1, bias=True)
             self.att2 = PA(unf)
             self.HRconv2 = conv(unf, unf, 3, 1, 1, bias=True)
-        
+
         self.dropout = nn.Dropout(p=P)
         self.conv_last = conv(unf, out_nc, 3, 1, 1, bias=True)
         self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
@@ -167,3 +169,32 @@ class NearestConvDropout(nn.Module):
         x = self.dropout(x)
         x = self.conv_last(self.act(self.conv_hr(x)))
         return x
+
+if __name__ == "__main__":
+    # Define the network
+    from thop import profile,clever_format
+    from torchinfo import summary
+
+    scale = 2 # Scale factor, adjust as needed
+    num_feat = 64
+    in_feat = 64  # 输入特征数
+    num_out_ch = 3
+    input_resolution = (16, 16)
+    # 模型参数定义
+    nf = 64  # 特征数量
+    unf = 64  # 升维后的特征数量
+    out_nc = 3  # 输出通道数
+    scale = 4  # 放大比例
+
+    # 初始化模型
+    model = PA_UP(nf, unf, out_nc, scale)
+    # model = PixelShuffleDirect(scale, num_feat, num_out_ch, input_resolution)
+    # model = PixelShuffleBlcok(in_feat, num_feat, num_out_ch)
+
+    dummy_input = torch.randn(1, 64, 32, 32)
+
+    flops, params = profile(model, inputs=(dummy_input, ), verbose=False)
+    print(f"{flops / 1e6 }M")
+    model_size = params * 4.0 / 1024 / 1024 #MB
+    macs, params = clever_format([flops, params], "%.4f")
+    print(f"macs:{macs},\n params:{params},\nmodel_size:{model_size}")

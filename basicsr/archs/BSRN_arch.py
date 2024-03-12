@@ -282,7 +282,7 @@ class ESDB(nn.Module):
         return out_fused + input
 
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class BSRN(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
@@ -351,11 +351,11 @@ class BSRN(nn.Module):
         return output
 
 if __name__ == "__main__":
-    model = BSRN(upscale=8)
+    model = BSRN(upscale=4)
     # summaryv2(model, (1,3,16,16))
-    # summaryv1(model,(3,128,128))
+    summaryv1(model,(3,320,180),device='cpu')
     # print(model)
-    input_data = torch.randn((1, 3, 16, 16))
+    input_data = torch.randn((1, 3, 320, 180))
     # output_data = model(input_data)
     # print(output_data.shape)
     macs, params = profile(model, inputs=(input_data,))

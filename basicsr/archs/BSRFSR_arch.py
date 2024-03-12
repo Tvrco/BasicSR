@@ -50,7 +50,7 @@ class _Conv_Block(nn.Module):
         output = self.up(output)
         return output
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class BSRFSR(nn.Module):
     def __init__(self,num_out_ch=3,conv='BSConvU'):
         super(BSRFSR, self).__init__()
@@ -116,5 +116,6 @@ class BSRFSR(nn.Module):
 
 if __name__ == "__main__":
     model = BSRFSR(num_out_ch=3,conv='BSConvU_rep')
-    summaryv2(model, (1,3,16,16))
+    # summaryv2(model, (1,3,16,16))
+    # summaryv1(model, (3,16,16), device="cpu")
     cont(model,x=(3, 16, 16))
