@@ -10,20 +10,14 @@ fontsize = 28
 # total_params = [21803.21, 21803.21, 6343.53, 6343.53, 720.22, 720.22]  # Total params / 10^3
 # multi_adds = [2982.84, 2982.84, 8530.11, 8530.11, 922.64, 922.64]  # Multi-adds / 10^6
 # psnr_values = [ 27.28, 25.50, 26.22, 25.33, 27.06, 26.02]  # PSNR / dB
-methods = ['VapSR','RLFN','IDN','IMDN','PAN','RFDN','BSRN','LKDN','FSRNet', 'FSR-GAN', 'DIC', 'DIC-GAN', 'MSFSR', 'MSFSR-GAN', 'BSRFSR', 'BSRFSR-GAN']
-total_params = [433.98,390.13,590.915,791.451,338.92,498.392,435.488,394.712,2153.93, 2153.93, 21803.21, 21803.21, 6343.53, 6343.53, 720.22, 720.22]  # Total params / 10^3
-multi_adds = [109.9,95.23,1045,203.05,734.36,122.0298,106.533,100.036,15847.52, 15847.52, 2982.84, 2982.84, 8530.11, 8530.11, 922.64, 922.64]  # Multi-adds / 10^6
-psnr_values = [24.72,24.39,23.76,23.93,24.63,24.41,24.64,24.62,26.31, 23.89, 27.28, 25.50, 26.22, 25.33, 27.06, 26.02]  # PSNR / dB
-
-# 这里是关键修改的部分
+methods = ['IDN','IMDN','RFDN','BSRN','LKDN','FSRNet', 'FSR-GAN', 'DIC', 'DIC-GAN', 'MSFSR', 'MSFSR-GAN', 'BSRFSR', 'BSRFSR-GAN']
+total_params = [590.915,791.451,498.392,435.488,394.712,2153.93, 2153.93, 21803.21, 21803.21, 6343.53, 6343.53, 720.22, 720.22]  # Total params / 10^3
+multi_adds = [1045,203.05,122.0298,106.533,100.036,15847.52, 15847.52, 2982.84, 2982.84, 8530.11, 8530.11, 922.64, 922.64]  # Multi-adds / 10^6
+psnr_values = [23.76,23.93,24.41,24.64,24.62,26.31, 23.89, 27.28, 25.50, 26.22, 25.33, 27.06, 26.02]  # PSNR / dB
 
 
 # 创建散点图
 fig, ax = plt.subplots(figsize=(16, 10))
-max_param = max(total_params)
-scale_for_5000 = 5000 / (4/5)  # 计算5000在总长度中的比例
-extended_max_param = max(scale_for_5000, max_param)  # 确保所有点都能显示
-plt.xlim(0, extended_max_param)  # 设置x轴范围
 for i in range(len(methods)):
     if 0<multi_adds[i] <500:
         area = (10) * 9.5**2*4
@@ -95,5 +89,5 @@ plt.ylabel('PSNR (dB)')
 
 # 显示图表
 
-# plt.savefig('model_params', dpi=400)
+plt.savefig('model_params', dpi=400)
 plt.show()
