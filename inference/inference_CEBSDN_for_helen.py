@@ -8,7 +8,7 @@ import sys
 import torch
 from torchinfo import summary
 # from torchstat import stat
-from ptflops import get_model_complexity_info
+# from ptflops import get_model_complexity_info
 from thop import profile
 from tqdm import tqdm
 import time
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         '--model_num',
         type=str,
         default=  # noqa: E251
-        'net_g_10000.pth')
+        'net_g_100000.pth')
     args = parser.parse_args()
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
@@ -77,8 +77,10 @@ if __name__ == '__main__':
             net = model(num_feat=48,upscale=8).to(device)
         elif 'CEBSDN_Helenx8_C58BS64_infer_L1_100k' == model_name_path:
             net = model(num_feat=58,upscale=8).to(device)
-        elif 'CEBSDN_Helenx8_C62BS64_infer_L1_100k' == model_name_path:
+        elif 'CEBSDN_wCCA_ESA' == model_name_path:
             net = model(num_feat=62,upscale=8).to(device)
+        # elif 'CEBSDN_Helenx8_C62BS64_infer_L1_100k' == model_name_path:
+        #     net = model(num_feat=62,upscale=8).to(device)
         elif 'CEBSDN_Helenx8_C64BS64_infer_L1_100k' == model_name_path:
             net = model(num_feat=64,upscale=8).to(device)
         elif 'CEBSDN_wo_CA_Helenx8_C48BS64_L1_infer_100k' == model_name_path:
