@@ -129,11 +129,17 @@ if __name__ == "__main__":
 # python predata.py --scale all
 
 # python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test/HR --lr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test -s LRbicX8
-
+# ---trian
 # python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb32_downx2 -s LRbicX4
 # python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb64_downx4 -s LRbicX2
-# MV /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX4 /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX2
-# MV /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX2 /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX4
+# mv /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX4 /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX2
+# mv /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX2 /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX4
+
+# ---test
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb32_downx2 -s LRbicX4
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/test/celeb64_downx4 -s LRbicX2
+# mv /home/ubuntu/workplace/pjh/data/test/celeb32_downx2/LRbicX4 /home/ubuntu/workplace/pjh/data/test/celeb32_downx2/LRbicX2
+# mv /home/ubuntu/workplace/pjh/data/test/celeb64_downx4/LRbicX2 /home/ubuntu/workplace/pjh/data/test/celeb64_downx4/LRbicX4
 
 # python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test/HR --lr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test -s LRbicX8
 

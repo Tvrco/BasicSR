@@ -288,7 +288,7 @@ class CADB(nn.Module):
         return out_fused + input
 
 
-# @ARCH_REGISTRY.register()
+@ARCH_REGISTRY.register()
 class CEBSDN(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
