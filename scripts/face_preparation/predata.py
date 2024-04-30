@@ -130,6 +130,13 @@ if __name__ == "__main__":
 
 # python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test/HR --lr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test -s LRbicX8
 
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb32_downx2 -s LRbicX4
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb128 --lr_img_dir /home/ubuntu/workplace/pjh/data/train/celeb64_downx4 -s LRbicX2
+# MV /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX4 /home/ubuntu/workplace/pjh/data/train/celeb32_downx2/LRbicX2
+# MV /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX2 /home/ubuntu/workplace/pjh/data/train/celeb64_downx4/LRbicX4
+
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test/HR --lr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/data/inference_test -s LRbicX8
+
 # python predata.py --hr_img_dir D:\BasicSR\datasets\Helen\Helen_test\HR --lr_img_dir D:\BasicSR\datasets\Helen\Helen_test -s LRbicX8
 
 # python predata.py --hr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference\GTmod128 --lr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference --iteration True
