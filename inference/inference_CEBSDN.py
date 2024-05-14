@@ -16,13 +16,13 @@ from basicsr.utils.img_util import img2tensor, tensor2img
 from basicsr.metrics.psnr_ssim import calculate_psnr, calculate_ssim
 
 if __name__ == '__main__':
-    model_name = 'CEBSDN_wo_dataen'
-    model_name_expath = 'CEBSDN_wo_dataen_Helenx8_C64BS64_L1_100k'
-    model_pth = 'net_g_4000.pth'
+    model_name = 'CEBSDN_2'
+    model_name_expath = 'CEBSDN_CelebAx2_C48BS64_L1_600k'
+    model_pth = 'net_g_600000.pth'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
-    # parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
+    # parser.add_argument('--test_path', type=str, default='datasets/Helen/Helen_test')
+    parser.add_argument('--test_path', type=str, default='datasets/data/inference_test')
     parser.add_argument(
         '--model_path',
         type=str,
@@ -32,8 +32,8 @@ if __name__ == '__main__':
     if args.test_path.endswith('/'):  # solve when path ends with /
         args.test_path = args.test_path[:-1]
     test_root = os.path.join(args.test_path)
-    test_HR = os.path.join(test_root,"HR")
-    test_LR = os.path.join(test_root,"LR")
+    test_HR = os.path.join(test_root,"LR_X2_32")
+    test_LR = os.path.join(test_root,"LR_X8_16")
     psnrlist = []
     psnr_y_list=[]
     ssimlist = []
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # start = torch.cuda.Event(enable_timing=True)
     # end = torch.cuda.Event(enable_timing=True)
 
-    net = model(upscale=8).to(device)
+    net = model(upscale=2,num_in_ch=3,num_feat=48,num_block=8,num_out_ch=3).to(device)
     checkpoint = torch.load(args.model_path, map_location=lambda storage, loc: storage)
     net.load_state_dict(checkpoint['params'])
     net.eval()

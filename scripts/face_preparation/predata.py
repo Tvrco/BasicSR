@@ -146,3 +146,9 @@ if __name__ == "__main__":
 # python predata.py --hr_img_dir D:\BasicSR\datasets\Helen\Helen_test\HR --lr_img_dir D:\BasicSR\datasets\Helen\Helen_test -s LRbicX8
 
 # python predata.py --hr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference\GTmod128 --lr_img_dir E:\PyProject\data\classical_SR_datasets\CelebA-HQ_ParsingMap\inference --iteration True
+
+# python predata.py --hr_img_dir E:\PyProject\SR\BasicSR_Server20231212\BasicSR\datasets\data\inference_test\HR --lr_img_dir E:\PyProject\SR\BasicSR_Server20231212\BasicSR\datasets\data\inference_test -s LRbicX4
+
+
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/inference/HR --lr_img_dir /home/ubuntu/workplace/pjh/BasicSR/datasets/inference -s LRbicX2
+# python predata.py --hr_img_dir /home/ubuntu/workplace/pjh/data/inference_test/HR --lr_img_dir /home/ubuntu/workplace/pjh/data/inference_test -s LRbicX2

@@ -1,5 +1,5 @@
 # general settings
-name: CEBSDN_CelebAx4_C48BS64_L1_600k
+name: CEBSDN_CelebAx4_C48BS64_infer_L1_100k
 model_type: SRModel
 scale: 4
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -10,8 +10,8 @@ datasets:
   train:
     name: CelebA-HQ
     type: PairedImageDataset
-    dataroot_gt: ./datasets/data/train/celeb64_downx4/LRbicX4
-    dataroot_lq: ./datasets/data/train/celeb16_downx8/LRbicX8
+    dataroot_gt: datasets/data/inference_test/LR_X4_64
+    dataroot_lq: datasets/data/inference_test/LR_X8
     filename_tmpl: '{}'
     io_backend:
       type: disk
@@ -22,16 +22,16 @@ datasets:
 
     # data loader
     use_shuffle: true
-    num_worker_per_gpu: 8
-    batch_size_per_gpu: 64
-    dataset_enlarge_ratio: 10
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 1
+    dataset_enlarge_ratio: 100
     prefetch_mode: ~
 
   val:
     name: CelebA-HQ_val
     type: PairedImageDataset
-    dataroot_gt: ./datasets/data/test/celeb64_downx4/LRbicX4
-    dataroot_lq: ./datasets/data/test/celeb16_downx8/LRbicX8
+    dataroot_gt: datasets/data/inference_test/LR_X4_64
+    dataroot_lq: datasets/data/inference_test/LR_X8
     io_backend:
       type: disk
 
@@ -47,7 +47,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: ~
+  pretrain_network_g: experiments/CEBSDN_CelebAx4_C48BS64_L1_600k/models/net_g_latest.pth
   strict_load_g: true
   resume_state: ~
 
@@ -55,18 +55,18 @@ path:
 train:
   optim_g:
     type: Adam
-    lr: !!float 1e-4
+    lr: !!float 1e-3
     weight_decay: 0
     betas: [0.9, 0.999]
 
   scheduler:
     type: CosineAnnealingRestartLR
-    periods: [600000]
+    periods: [100000]
     restart_weights: [1]
     eta_min: !!float 1e-7
 
 
-  total_iter: 600000
+  total_iter: 100000
   warmup_iter: -1  # no warm up
 
   # losses
@@ -77,7 +77,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 5e4
+  val_freq: !!float 2e4
   save_img: false
 
   metrics:
@@ -92,7 +92,7 @@ val:
 # logging settings
 logger:
   print_freq: 1000
-  save_checkpoint_freq: !!float 5e4
+  save_checkpoint_freq: !!float 2e4
   use_tb_logger: false
   # wandb:
   #   project: ~
@@ -106,5 +106,7 @@ dist_params:
 # CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48.yml > runlog/CEBSDN_CelebAx8_C48BS64_L1_600k_2.29.log 2>&1 &
 # CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48_x4.yml > runlog/CEBSDN_CelebAx4_C48BS64_L1_600k_4.30.log 2>&1 &
 
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA_infer/train_CEBSDN_CelebA_C48_x4_infer.yml > runlog/train_CEBSDN_CelebA_C48_x4_infer_5.14.log 2>&1 &
 # ps -ef | grep basicsr/train.py | grep -v grep | awk '{print $2}' | xargs kill -9
+# CUDA_VISIBLE_DEVICES=1 python -u basicsr/train.py -opt options/train/CEBSDN/CelebA_infer/train_CEBSDN_CelebA_C48_x4_infer.yml
 

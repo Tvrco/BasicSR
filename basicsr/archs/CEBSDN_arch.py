@@ -288,7 +288,7 @@ class CADB(nn.Module):
         return out_fused + input
 
 
-@ARCH_REGISTRY.register()
+# @ARCH_REGISTRY.register()
 class CEBSDN(nn.Module):
     def __init__(self, num_in_ch=3, num_feat=64, num_block=8, num_out_ch=3, upscale=4,
                  conv='BSConvU', upsampler='pixelshuffledirect', p=0.25):
@@ -357,7 +357,7 @@ class CEBSDN(nn.Module):
         return output
 
 if __name__ == "__main__":
-    model = CEBSDN(upscale=8,num_feat=48)
+    model = CEBSDN(upscale=4,num_feat=48)
     # summaryv2(model, (1,3,16,16))
     # summaryv1(model,(3,128,128))
     # print(model)

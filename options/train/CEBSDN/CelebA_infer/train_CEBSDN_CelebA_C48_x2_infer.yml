@@ -1,7 +1,7 @@
 # general settings
-name: CEBSDN_CelebAx4_C48BS64_L1_600k
+name: CEBSDN_CelebAx2_C48BS64_infer_L1_600k
 model_type: SRModel
-scale: 4
+scale: 2
 num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
@@ -10,8 +10,8 @@ datasets:
   train:
     name: CelebA-HQ
     type: PairedImageDataset
-    dataroot_gt: ./datasets/data/train/celeb64_downx4/LRbicX4
-    dataroot_lq: ./datasets/data/train/celeb16_downx8/LRbicX8
+    dataroot_gt: datasets/inference/celeb_32
+    dataroot_lq: datasets/inference/LR
     filename_tmpl: '{}'
     io_backend:
       type: disk
@@ -30,7 +30,7 @@ datasets:
   val:
     name: CelebA-HQ_val
     type: PairedImageDataset
-    dataroot_gt: ./datasets/data/test/celeb64_downx4/LRbicX4
+    dataroot_gt: ./datasets/data/test/celeb32_downx2/LRbicX2
     dataroot_lq: ./datasets/data/test/celeb16_downx8/LRbicX8
     io_backend:
       type: disk
@@ -42,7 +42,7 @@ network_g:
   num_feat: 48
   num_block: 8
   num_out_ch: 3
-  upscale: 4
+  upscale: 2
   conv: BSConvU
 
 # path
@@ -103,8 +103,8 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
-# CUDA_VISIBLE_DEVICES=1 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48.yml > runlog/CEBSDN_CelebAx8_C48BS64_L1_600k_2.29.log 2>&1 &
-# CUDA_VISIBLE_DEVICES=2 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48_x4.yml > runlog/CEBSDN_CelebAx4_C48BS64_L1_600k_4.30.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup python -u basicsr/train.py -opt options/train/CEBSDN/CelebA/train_CEBSDN_CelebA_C48_x2.yml > runlog/CEBSDN_CelebAx2_C48BS64_L1_600k_4.30.log 2>&1 &
+
 
 # ps -ef | grep basicsr/train.py | grep -v grep | awk '{print $2}' | xargs kill -9
 
